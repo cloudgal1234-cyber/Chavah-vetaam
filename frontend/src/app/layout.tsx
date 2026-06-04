@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
+import { Heebo } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
+const heebo = Heebo({ subsets: ['hebrew', 'latin'], variable: '--font-heebo' });
+
 export const metadata: Metadata = {
-  title: 'Presenter AI — AI-Powered Video & Content Studio',
-  description: 'Generate AI video ads, UGC content, product photos, and virtual presenters from images and text.',
+  title: 'Presenter AI — סטודיו לתוכן AI',
+  description: 'צור סרטוני פרסומת AI, תוכן UGC, תמונות מוצר ומגישים וירטואליים מתמונות וטקסט.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased">
+    <html lang="he" dir="rtl" className={heebo.variable}>
+      <body className="bg-gray-50 text-gray-900 antialiased font-sans">
         {children}
-        <Toaster position="top-right" />
+        <Toaster position="top-left" />
       </body>
     </html>
   );

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getAuthUser, unauthorized } from '@/lib/auth-server';
 import { prisma } from '@/lib/prisma';
-import { runGeneration, CREDIT_COSTS } from '@/services/ai';
+import { runGeneration } from '@/services/ai';
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser(req);
@@ -54,22 +54,10 @@ export async function POST(req: NextRequest) {
     const campaign = await prisma.campaign.findFirst({ where: { id: campaignId, userId: user.id } });
     if (!campaign) return Response.json({ error: 'Campaign not found' }, { status: 404 });
 
-    const cost = CREDIT_COSTS[mediaType];
-    if (user.credits < cost) {
-      return Response.json({ error: 'Insufficient credits', required: cost, balance: user.credits }, { status: 402 });
-    }
+    const generation = await prisma.generation.create({
+      data: { campaignId, mediaType, status: 'PROCESSING', prompt: prompt || campaign.script, creditsUsed: 0 },
+    });
 
-    const [, generation] = await prisma.$transaction([
-      prisma.user.update({ where: { id: user.id }, data: { credits: { decrement: cost } } }),
-      prisma.generation.create({
-        data: { campaignId, mediaType, status: 'PROCESSING', prompt: prompt || campaign.script, creditsUsed: cost },
-      }),
-      prisma.creditLog.create({
-        data: { userId: user.id, delta: -cost, reason: `${mediaType} generation`, balanceAfter: user.credits - cost },
-      }),
-    ]);
-
-    // Fire-and-forget background job
     runGeneration(mediaType, generation.prompt || '')
       .then((result) =>
         prisma.generation.update({
@@ -79,11 +67,9 @@ export async function POST(req: NextRequest) {
       )
       .catch(async (err) => {
         await prisma.generation.update({ where: { id: generation.id }, data: { status: 'FAILED', errorMessage: err.message } });
-        const u = await prisma.user.update({ where: { id: user.id }, data: { credits: { increment: cost } } });
-        await prisma.creditLog.create({ data: { userId: user.id, delta: cost, reason: 'Generation failed — refund', balanceAfter: u.credits } });
       });
 
-    return Response.json({ id: generation.id, status: 'PROCESSING', creditsUsed: cost }, { status: 202 });
+    return Response.json({ id: generation.id, status: 'PROCESSING' }, { status: 202 });
   } catch (err: any) {
     return Response.json({ error: err.message }, { status: 500 });
   }

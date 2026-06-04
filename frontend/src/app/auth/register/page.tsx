@@ -17,10 +17,10 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await signUp(data.name, data.email, data.password);
-      toast.success('Account created! You have 100 free credits.');
+      toast.success('החשבון נוצר! ברוך הבא 🎉');
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Registration failed');
+      toast.error(err.response?.data?.error || 'ההרשמה נכשלה');
     }
   };
 
@@ -29,79 +29,78 @@ export default function RegisterPage() {
       <div className="card p-8 w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-bold text-brand-600">Presenter AI</Link>
-          <p className="text-gray-500 mt-2 text-sm">Create your free account</p>
+          <p className="text-gray-500 mt-2 text-sm">יצירת חשבון חינמי</p>
         </div>
 
-        {/* GitHub OAuth button */}
         <a
           href={GITHUB_AUTH_URL}
           className="flex items-center justify-center gap-3 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition active:scale-95 mb-5"
         >
           <GitHubIcon />
-          Sign up with GitHub
+          הרשמה עם GitHub
         </a>
 
         <div className="flex items-center gap-3 mb-5">
           <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">or register with email</span>
+          <span className="text-xs text-gray-400">או הרשם עם אימייל</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">שם מלא</label>
             <input
               className="input"
-              placeholder="Jane Smith"
-              {...register('name', { required: 'Name is required' })}
+              placeholder="ישראל ישראלי"
+              {...register('name', { required: 'חובה להזין שם' })}
             />
             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">אימייל</label>
             <input
               type="email"
               className="input"
               placeholder="you@example.com"
-              {...register('email', { required: 'Email is required' })}
+              {...register('email', { required: 'חובה להזין אימייל' })}
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">סיסמה</label>
             <input
               type="password"
               className="input"
-              placeholder="Min. 8 characters"
-              {...register('password', { required: 'Password is required', minLength: { value: 8, message: 'Min. 8 characters' } })}
+              placeholder="לפחות 8 תווים"
+              {...register('password', { required: 'חובה להזין סיסמה', minLength: { value: 8, message: 'לפחות 8 תווים' } })}
             />
             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">אימות סיסמה</label>
             <input
               type="password"
               className="input"
-              placeholder="Repeat password"
+              placeholder="חזור על הסיסמה"
               {...register('confirmPassword', {
                 required: true,
-                validate: (v) => v === watch('password') || 'Passwords do not match',
+                validate: (v) => v === watch('password') || 'הסיסמאות אינן תואמות',
               })}
             />
             {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
           </div>
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-2.5">
-            {isSubmitting ? 'Creating account…' : 'Create Free Account'}
+            {isSubmitting ? 'יוצר חשבון…' : 'יצירת חשבון חינמי'}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <Link href="/auth/login" className="text-brand-600 font-medium hover:underline">Sign in</Link>
+          כבר יש לך חשבון?{' '}
+          <Link href="/auth/login" className="text-brand-600 font-medium hover:underline">כנס</Link>
         </p>
       </div>
     </div>

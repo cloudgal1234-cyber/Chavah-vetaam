@@ -2,14 +2,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store';
-import { cn, formatCredits } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { href: '/campaigns', label: 'Campaigns', icon: '📁' },
-  { href: '/campaigns/new', label: 'New Campaign', icon: '✨' },
-  { href: '/gallery', label: 'Gallery', icon: '🖼️' },
+  { href: '/dashboard', label: 'לוח בקרה', icon: '🏠' },
+  { href: '/campaigns', label: 'קמפיינים', icon: '📁' },
+  { href: '/campaigns/new', label: 'קמפיין חדש', icon: '✨' },
+  { href: '/gallery', label: 'גלריה', icon: '🖼️' },
 ];
 
 export default function Sidebar() {
@@ -19,12 +19,12 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    toast.success('Logged out');
+    toast.success('התנתקת בהצלחה');
     router.push('/');
   };
 
   return (
-    <aside className="flex h-full w-60 flex-col border-r border-gray-200 bg-white px-4 py-6">
+    <aside className="flex h-full w-60 flex-col border-l border-gray-200 bg-white px-4 py-6">
       <Link href="/" className="mb-8 px-2 text-xl font-bold text-brand-600">
         Presenter AI
       </Link>
@@ -48,11 +48,6 @@ export default function Sidebar() {
       </nav>
 
       <div className="border-t border-gray-100 pt-4 space-y-3">
-        <div className="rounded-lg bg-brand-50 px-3 py-2">
-          <p className="text-xs text-brand-600 font-medium">Credits Balance</p>
-          <p className="text-2xl font-bold text-brand-700">{formatCredits(user?.credits ?? 0)}</p>
-        </div>
-
         <div className="flex items-center gap-3 px-2">
           <div className="h-8 w-8 rounded-full bg-brand-200 flex items-center justify-center text-sm font-bold text-brand-700">
             {user?.name?.[0]?.toUpperCase()}
@@ -63,8 +58,8 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <button onClick={handleLogout} className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
-          Sign out
+        <button onClick={handleLogout} className="w-full text-right px-3 py-2 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+          התנתק
         </button>
       </div>
     </aside>

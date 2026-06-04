@@ -37,65 +37,65 @@ export default function NewCampaignPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      toast.success('Campaign created!');
+      toast.success('הקמפיין נוצר!');
       router.push(`/campaigns/${campaign.id}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to create campaign');
+      toast.error(err.response?.data?.error || 'שגיאה ביצירת קמפיין');
     }
   };
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">New Campaign</h1>
-        <p className="text-gray-500 text-sm mt-1">Fill in your product details to start generating AI content.</p>
+        <h1 className="text-2xl font-bold">קמפיין חדש</h1>
+        <p className="text-gray-500 text-sm mt-1">מלא את פרטי המוצר כדי להתחיל ליצור תוכן AI.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Title *</label>
-          <input className="input" placeholder="Summer Product Launch" {...register('title', { required: 'Title is required' })} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">שם הקמפיין *</label>
+          <input className="input" placeholder="השקת מוצר קיץ" {...register('title', { required: 'חובה להזין שם' })} />
           {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product Description</label>
-          <textarea className="input min-h-[80px] resize-y" placeholder="Describe your product and its key benefits…" {...register('description')} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">תיאור המוצר</label>
+          <textarea className="input min-h-[80px] resize-y" placeholder="תאר את המוצר ויתרונותיו…" {...register('description')} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
-          <input className="input" placeholder="Ages 25-40, fitness enthusiasts, US market" {...register('targetAudience')} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">קהל יעד</label>
+          <input className="input" placeholder="גילאים 25-40, חובבי כושר, שוק ישראלי" {...register('targetAudience')} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Ad Script / Voiceover Text</label>
-          <textarea className="input min-h-[100px] resize-y" placeholder="Write the script for your AI presenter to say…" {...register('script')} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">תסריט / טקסט לפסקול</label>
+          <textarea className="input min-h-[100px] resize-y" placeholder="כתוב את הטקסט שמגיש ה-AI יגיד…" {...register('script')} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">תמונת מוצר</label>
           <div className="flex items-start gap-4">
             <label className="btn-secondary cursor-pointer">
-              Upload Image
+              העלה תמונה
               <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
             </label>
             {imagePreview && (
-              <img src={imagePreview} alt="Preview" className="h-20 w-20 rounded-lg object-cover border border-gray-200" />
+              <img src={imagePreview} alt="תצוגה מקדימה" className="h-20 w-20 rounded-lg object-cover border border-gray-200" />
             )}
           </div>
           {!imageFile && (
             <div className="mt-2">
-              <input className="input" placeholder="Or paste an image URL" {...register('productImageUrl')} />
+              <input className="input" placeholder="או הדבק קישור לתמונה" {...register('productImageUrl')} />
             </div>
           )}
         </div>
 
         <div className="flex gap-3 pt-2">
           <button type="submit" disabled={isSubmitting} className="btn-primary">
-            {isSubmitting ? 'Creating…' : 'Create Campaign'}
+            {isSubmitting ? 'יוצר…' : 'צור קמפיין'}
           </button>
-          <button type="button" onClick={() => router.back()} className="btn-secondary">Cancel</button>
+          <button type="button" onClick={() => router.back()} className="btn-secondary">ביטול</button>
         </div>
       </form>
     </div>

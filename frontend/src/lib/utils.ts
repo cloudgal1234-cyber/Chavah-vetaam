@@ -5,26 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCredits(n: number) {
-  return n.toLocaleString();
-}
-
 export function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
+  return new Intl.DateTimeFormat('he-IL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
 }
 
 export const MEDIA_TYPE_LABELS: Record<string, string> = {
-  VIDEO: 'AI Video Ad',
-  IMAGE: 'Product Photo',
-  AUDIO: 'Voiceover',
-  UGC: 'UGC Presenter',
-};
-
-export const MEDIA_TYPE_COSTS: Record<string, number> = {
-  VIDEO: 20,
-  IMAGE: 5,
-  AUDIO: 8,
-  UGC: 15,
+  VIDEO: 'סרטון פרסומת AI',
+  IMAGE: 'תמונת מוצר',
+  AUDIO: 'פסקול',
+  UGC: 'מגיש UGC',
 };
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -32,4 +21,13 @@ export const STATUS_COLORS: Record<string, string> = {
   PROCESSING: 'bg-blue-100 text-blue-800',
   COMPLETED: 'bg-green-100 text-green-800',
   FAILED: 'bg-red-100 text-red-800',
+};
+
+export const STATUS_LABELS: Record<string, string> = {
+  PENDING: 'ממתין',
+  PROCESSING: 'בעיבוד',
+  COMPLETED: 'הושלם',
+  FAILED: 'נכשל',
+  active: 'פעיל',
+  draft: 'טיוטה',
 };

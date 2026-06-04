@@ -5,10 +5,10 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store';
 
 const ERROR_MESSAGES: Record<string, string> = {
-  github_denied: 'GitHub sign-in was cancelled.',
-  github_token: 'Failed to obtain GitHub token. Please try again.',
-  github_no_email: 'Your GitHub account has no verified public email. Please add one and retry.',
-  github_error: 'GitHub sign-in failed. Please try again.',
+  github_denied: 'הכניסה עם GitHub בוטלה.',
+  github_token: 'שגיאה בקבלת אסימון מ-GitHub. אנא נסה שוב.',
+  github_no_email: 'לחשבון GitHub שלך אין אימייל ציבורי מאומת. אנא הוסף אחד ונסה שוב.',
+  github_error: 'הכניסה עם GitHub נכשלה. אנא נסה שוב.',
 };
 
 function CallbackHandler() {
@@ -21,7 +21,7 @@ function CallbackHandler() {
     const error = params.get('error');
 
     if (error) {
-      toast.error(ERROR_MESSAGES[error] || 'Sign-in failed');
+      toast.error(ERROR_MESSAGES[error] || 'הכניסה נכשלה');
       router.replace('/auth/login');
       return;
     }
@@ -29,7 +29,7 @@ function CallbackHandler() {
     if (token) {
       localStorage.setItem('pat_token', token);
       refreshUser().then(() => {
-        toast.success('Signed in with GitHub!');
+        toast.success('נכנסת עם GitHub! 🎉');
         router.replace('/dashboard');
       });
     } else {
@@ -45,7 +45,7 @@ export default function OAuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <div className="h-10 w-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-500 text-sm">Completing sign-in…</p>
+        <p className="text-gray-500 text-sm">מסיים כניסה…</p>
       </div>
       <Suspense>
         <CallbackHandler />

@@ -17,10 +17,10 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await login(data.email, data.password);
-      toast.success('Welcome back!');
+      toast.success('ברוך שובך!');
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Login failed');
+      toast.error(err.response?.data?.error || 'הכניסה נכשלה');
     }
   };
 
@@ -29,55 +29,54 @@ export default function LoginPage() {
       <div className="card p-8 w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="text-2xl font-bold text-brand-600">Presenter AI</Link>
-          <p className="text-gray-500 mt-2 text-sm">Sign in to your account</p>
+          <p className="text-gray-500 mt-2 text-sm">כניסה לחשבון</p>
         </div>
 
-        {/* GitHub OAuth button */}
         <a
           href={GITHUB_AUTH_URL}
           className="flex items-center justify-center gap-3 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition active:scale-95 mb-5"
         >
           <GitHubIcon />
-          Continue with GitHub
+          כניסה עם GitHub
         </a>
 
         <div className="flex items-center gap-3 mb-5">
           <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">or sign in with email</span>
+          <span className="text-xs text-gray-400">או כנס עם אימייל</span>
           <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">אימייל</label>
             <input
               type="email"
               className="input"
               placeholder="you@example.com"
-              {...register('email', { required: 'Email is required' })}
+              {...register('email', { required: 'חובה להזין אימייל' })}
             />
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">סיסמה</label>
             <input
               type="password"
               className="input"
               placeholder="••••••••"
-              {...register('password', { required: 'Password is required' })}
+              {...register('password', { required: 'חובה להזין סיסמה' })}
             />
             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
           </div>
 
           <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-2.5">
-            {isSubmitting ? 'Signing in…' : 'Sign In'}
+            {isSubmitting ? 'נכנס…' : 'כניסה'}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="text-brand-600 font-medium hover:underline">Sign up free</Link>
+          אין לך חשבון?{' '}
+          <Link href="/auth/register" className="text-brand-600 font-medium hover:underline">הירשם בחינם</Link>
         </p>
       </div>
     </div>
