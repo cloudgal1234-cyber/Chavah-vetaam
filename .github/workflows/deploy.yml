@@ -18,14 +18,22 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Pull Vercel Environment
+      - name: Set environment variables in Vercel
         working-directory: frontend
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Build Project
-        working-directory: frontend
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # Add all env vars (--force overwrites if already exists)
+          echo "${{ secrets.DATABASE_URL }}"    | vercel env add DATABASE_URL    production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.JWT_SECRET }}"      | vercel env add JWT_SECRET      production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.NEXT_PUBLIC_APP_URL }}" | vercel env add NEXT_PUBLIC_APP_URL production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.GITHUB_OAUTH_CLIENT_ID }}"     | vercel env add GITHUB_CLIENT_ID     production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.GITHUB_OAUTH_CLIENT_SECRET }}" | vercel env add GITHUB_CLIENT_SECRET production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.GITHUB_CALLBACK_URL }}"        | vercel env add GITHUB_CALLBACK_URL  production --token=$VERCEL_TOKEN --force --yes
+          printf "100" | vercel env add DEFAULT_CREDITS production --token=$VERCEL_TOKEN --force --yes
 
       - name: Deploy to Vercel
         working-directory: frontend
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --token=$VERCEL_TOKEN --yes --name=presenter-ai
