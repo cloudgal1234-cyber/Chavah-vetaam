@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store';
 
 interface FormData { name: string; email: string; password: string; confirmPassword: string; }
 
-const GITHUB_AUTH_URL = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/github`;
+const GITHUB_AUTH_URL = '/api/auth/github';
 
 export default function RegisterPage() {
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>();
