@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store';
@@ -11,7 +11,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   github_error: 'GitHub sign-in failed. Please try again.',
 };
 
-export default function OAuthCallbackPage() {
+function CallbackHandler() {
   const params = useSearchParams();
   const router = useRouter();
   const { refreshUser } = useAuthStore();
@@ -37,12 +37,19 @@ export default function OAuthCallbackPage() {
     }
   }, [params, router, refreshUser]);
 
+  return null;
+}
+
+export default function OAuthCallbackPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
         <div className="h-10 w-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-gray-500 text-sm">Completing sign-in…</p>
       </div>
+      <Suspense>
+        <CallbackHandler />
+      </Suspense>
     </div>
   );
 }

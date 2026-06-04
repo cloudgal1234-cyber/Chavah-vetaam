@@ -1,0 +1,39 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Set environment variables in Vercel
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # Add all env vars (--force overwrites if already exists)
+          echo "${{ secrets.DATABASE_URL }}"    | vercel env add DATABASE_URL    production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.JWT_SECRET }}"      | vercel env add JWT_SECRET      production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.NEXT_PUBLIC_APP_URL }}" | vercel env add NEXT_PUBLIC_APP_URL production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.GITHUB_OAUTH_CLIENT_ID }}"     | vercel env add GITHUB_CLIENT_ID     production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.GITHUB_OAUTH_CLIENT_SECRET }}" | vercel env add GITHUB_CLIENT_SECRET production --token=$VERCEL_TOKEN --force --yes
+          echo "${{ secrets.GITHUB_CALLBACK_URL }}"        | vercel env add GITHUB_CALLBACK_URL  production --token=$VERCEL_TOKEN --force --yes
+          printf "100" | vercel env add DEFAULT_CREDITS production --token=$VERCEL_TOKEN --force --yes
+
+      - name: Deploy to Vercel
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel --prod --token=$VERCEL_TOKEN --yes --name=presenter-ai
