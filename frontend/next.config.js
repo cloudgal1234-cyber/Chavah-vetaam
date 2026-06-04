@@ -7,8 +7,9 @@ const nextConfig = {
       { protocol: 'http', hostname: 'localhost' },
     ],
   },
-  // Required for bcryptjs in Next.js API routes
-  serverExternalPackages: ['bcryptjs'],
+  experimental: {
+    serverComponentsExternalPackages: ['bcryptjs'],
+  },
 };
 
 module.exports = nextConfig;

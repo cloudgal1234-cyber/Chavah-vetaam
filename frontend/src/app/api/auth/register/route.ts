@@ -15,15 +15,10 @@ export async function POST(req: NextRequest) {
     if (existing) return Response.json({ error: 'Email already registered' }, { status: 409 });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const defaultCredits = parseInt(process.env.DEFAULT_CREDITS || '100');
 
     const user = await prisma.user.create({
-      data: { email, name, passwordHash, credits: defaultCredits },
+      data: { email, name, passwordHash },
       select: { id: true, email: true, name: true, credits: true, role: true, createdAt: true },
-    });
-
-    await prisma.creditLog.create({
-      data: { userId: user.id, delta: defaultCredits, reason: 'Welcome bonus', balanceAfter: defaultCredits },
     });
 
     return Response.json({ token: signToken(user.id), user }, { status: 201 });

@@ -52,7 +52,6 @@ export async function GET(req: NextRequest) {
         data: { githubId: String(profile.id), githubLogin: profile.login, avatarUrl: user.avatarUrl || profile.avatar_url },
       });
     } else {
-      const defaultCredits = parseInt(process.env.DEFAULT_CREDITS || '100');
       user = await prisma.user.create({
         data: {
           email: primaryEmail,
@@ -60,11 +59,7 @@ export async function GET(req: NextRequest) {
           githubId: String(profile.id),
           githubLogin: profile.login,
           avatarUrl: profile.avatar_url,
-          credits: defaultCredits,
         },
-      });
-      await prisma.creditLog.create({
-        data: { userId: user.id, delta: defaultCredits, reason: 'Welcome bonus (GitHub)', balanceAfter: defaultCredits },
       });
     }
 
