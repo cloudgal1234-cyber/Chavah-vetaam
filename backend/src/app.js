@@ -7,6 +7,7 @@ const path = require('path');
 
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
+const authGithubRoutes = require('./routes/authGithub');
 const userRoutes = require('./routes/user');
 const campaignRoutes = require('./routes/campaigns');
 const generationRoutes = require('./routes/generation');
@@ -23,6 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/auth/github', authGithubRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/generations', generationRoutes);

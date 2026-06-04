@@ -11,7 +11,7 @@ An end-to-end application skeleton for an AI-powered video ad, UGC content, prod
 | Frontend | Next.js 14 (App Router), Tailwind CSS, Zustand, React Hook Form |
 | Backend | Node.js, Express, Prisma ORM |
 | Database | PostgreSQL |
-| Auth | JWT (via `jsonwebtoken` + `bcryptjs`) |
+| Auth | JWT + **GitHub OAuth 2.0** (via `jsonwebtoken`, `bcryptjs`, `axios`) |
 | File Upload | Multer (local storage; swap for S3 in production) |
 | AI Services | Mocked — swap in real API calls (OpenAI, HeyGen, ElevenLabs, Stability AI) |
 
@@ -96,6 +96,21 @@ cp frontend/.env.local.example frontend/.env.local
 
 Edit `backend/.env` with your database credentials and a strong `JWT_SECRET`.
 
+#### Setting up GitHub OAuth
+
+1. Go to **GitHub → Settings → Developer settings → OAuth Apps → New OAuth App**
+2. Fill in:
+   - **Application name:** Presenter AI (dev)
+   - **Homepage URL:** `http://localhost:3000`
+   - **Authorization callback URL:** `http://localhost:4000/api/auth/github/callback`
+3. Copy the **Client ID** and generate a **Client Secret**
+4. Set in `backend/.env`:
+   ```
+   GITHUB_CLIENT_ID=your_client_id
+   GITHUB_CLIENT_SECRET=your_client_secret
+   GITHUB_CALLBACK_URL=http://localhost:4000/api/auth/github/callback
+   ```
+
 ### 2. Start with Docker Compose (recommended)
 
 ```bash
@@ -141,8 +156,10 @@ All protected routes require `Authorization: Bearer <token>`.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/auth/register` | Register; returns JWT + user |
-| POST | `/api/auth/login` | Login; returns JWT + user |
+| POST | `/api/auth/register` | Register with email/password; returns JWT + user |
+| POST | `/api/auth/login` | Login with email/password; returns JWT + user |
+| GET | `/api/auth/github` | Redirect to GitHub OAuth consent page |
+| GET | `/api/auth/github/callback` | GitHub redirects here; creates/links user, redirects to frontend `/auth/callback?token=…` |
 
 ### Users
 
