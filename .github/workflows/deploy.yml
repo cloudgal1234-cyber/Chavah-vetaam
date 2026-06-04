@@ -18,22 +18,56 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Set environment variables in Vercel
+      - name: Create Vercel project, set env vars, and deploy
         working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
         run: |
-          # Add all env vars (--force overwrites if already exists)
-          echo "${{ secrets.DATABASE_URL }}"    | vercel env add DATABASE_URL    production --token=$VERCEL_TOKEN --force --yes
-          echo "${{ secrets.JWT_SECRET }}"      | vercel env add JWT_SECRET      production --token=$VERCEL_TOKEN --force --yes
-          echo "${{ secrets.NEXT_PUBLIC_APP_URL }}" | vercel env add NEXT_PUBLIC_APP_URL production --token=$VERCEL_TOKEN --force --yes
-          echo "${{ secrets.GITHUB_OAUTH_CLIENT_ID }}"     | vercel env add GITHUB_CLIENT_ID     production --token=$VERCEL_TOKEN --force --yes
-          echo "${{ secrets.GITHUB_OAUTH_CLIENT_SECRET }}" | vercel env add GITHUB_CLIENT_SECRET production --token=$VERCEL_TOKEN --force --yes
-          echo "${{ secrets.GITHUB_CALLBACK_URL }}"        | vercel env add GITHUB_CALLBACK_URL  production --token=$VERCEL_TOKEN --force --yes
-          printf "100" | vercel env add DEFAULT_CREDITS production --token=$VERCEL_TOKEN --force --yes
+          # Get org (user) ID
+          ORG_ID=$(curl -s https://api.vercel.com/v2/user \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['user']['id'])")
+          echo "Org ID: $ORG_ID"
 
-      - name: Deploy to Vercel
-        working-directory: frontend
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel --prod --token=$VERCEL_TOKEN --yes --name=presenter-ai
+          # Create project (ignore error if already exists)
+          curl -s -X POST "https://api.vercel.com/v10/projects" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"name":"presenter-ai","framework":"nextjs","rootDirectory":"frontend"}' > /dev/null
+
+          # Get project ID
+          PROJECT_ID=$(curl -s "https://api.vercel.com/v10/projects/presenter-ai" \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+          echo "Project ID: $PROJECT_ID"
+
+          # Link project locally
+          mkdir -p .vercel
+          echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$ORG_ID\"}" > .vercel/project.json
+
+          # Add environment variables
+          add_env() {
+            curl -s -X POST "https://api.vercel.com/v10/projects/$PROJECT_ID/env" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"key\":\"$1\",\"value\":\"$2\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\"]}" > /dev/null
+          }
+
+          add_env "DATABASE_URL"        "$DATABASE_URL"
+          add_env "JWT_SECRET"          "$JWT_SECRET"
+          add_env "NEXT_PUBLIC_APP_URL" "$NEXT_PUBLIC_APP_URL"
+          add_env "DEFAULT_CREDITS"     "100"
+          add_env "GITHUB_CLIENT_ID"    "${{ secrets.GITHUB_OAUTH_CLIENT_ID }}"
+          add_env "GITHUB_CLIENT_SECRET" "${{ secrets.GITHUB_OAUTH_CLIENT_SECRET }}"
+          add_env "GITHUB_CALLBACK_URL" "$NEXT_PUBLIC_APP_URL/api/auth/github/callback"
+
+          echo "✅ Environment variables set"
+
+          # Build & deploy
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+          vercel build --prod --token=$VERCEL_TOKEN
+          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)
+          echo "🚀 Deployed to: $DEPLOY_URL"
