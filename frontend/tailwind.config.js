@@ -19,7 +19,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-heebo)', 'Heebo', 'system-ui', 'sans-serif'],
       },
     },
   },
