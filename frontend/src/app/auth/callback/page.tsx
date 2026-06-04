@@ -9,6 +9,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   github_token: 'שגיאה בקבלת אסימון מ-GitHub. אנא נסה שוב.',
   github_no_email: 'לחשבון GitHub שלך אין אימייל ציבורי מאומת. אנא הוסף אחד ונסה שוב.',
   github_error: 'הכניסה עם GitHub נכשלה. אנא נסה שוב.',
+  google_denied: 'הכניסה עם Google בוטלה.',
+  google_token: 'שגיאה בקבלת אסימון מ-Google. אנא נסה שוב.',
+  google_no_email: 'לא ניתן לקבל אימייל מחשבון Google שלך. אנא נסה שוב.',
+  google_error: 'הכניסה עם Google נכשלה. אנא נסה שוב.',
 };
 
 function CallbackHandler() {
@@ -29,7 +33,7 @@ function CallbackHandler() {
     if (token) {
       localStorage.setItem('pat_token', token);
       refreshUser().then(() => {
-        toast.success('נכנסת עם GitHub! 🎉');
+        toast.success('נכנסת בהצלחה! 🎉');
         router.replace('/dashboard');
       });
     } else {
