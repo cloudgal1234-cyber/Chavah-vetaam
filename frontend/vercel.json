@@ -1,9 +1,15 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "buildCommand": "npx prisma generate && next build",
   "installCommand": "npm install",
+  "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_API_URL": "@presenter-ai-api-url"
+    "DATABASE_URL": "@database_url",
+    "JWT_SECRET": "@jwt_secret",
+    "GITHUB_CLIENT_ID": "@github_client_id",
+    "GITHUB_CLIENT_SECRET": "@github_client_secret",
+    "GITHUB_CALLBACK_URL": "@github_callback_url",
+    "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
+    "DEFAULT_CREDITS": "100"
   }
 }
