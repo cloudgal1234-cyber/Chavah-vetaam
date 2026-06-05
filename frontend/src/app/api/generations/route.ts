@@ -1,11 +1,10 @@
 import { NextRequest } from 'next/server';
-import { getAuthUser, unauthorized } from '@/lib/auth-server';
+import { resolveUser } from '@/lib/auth-server';
 import { prisma } from '@/lib/prisma';
 import { runGeneration } from '@/services/ai';
 
 export async function GET(req: NextRequest) {
-  const user = await getAuthUser(req);
-  if (!user) return unauthorized();
+  const user = await resolveUser(req);
 
   const { searchParams } = req.nextUrl;
   const page = parseInt(searchParams.get('page') || '1');
@@ -37,8 +36,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getAuthUser(req);
-  if (!user) return unauthorized();
+  const user = await resolveUser(req);
 
   try {
     const { campaignId, mediaType, prompt } = await req.json();

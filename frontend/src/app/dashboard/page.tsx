@@ -27,7 +27,7 @@ export default function DashboardPage() {
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">ברוך שובך, {user?.name?.split(' ')[0]} 👋</h1>
+        <h1 className="text-2xl font-bold text-gray-900">ברוך הבא 👋</h1>
         <p className="text-gray-500 text-sm mt-1">הנה מה שקורה עם התוכן שלך</p>
       </div>
 

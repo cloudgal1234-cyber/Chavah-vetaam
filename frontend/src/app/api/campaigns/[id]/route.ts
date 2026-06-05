@@ -1,12 +1,11 @@
 import { NextRequest } from 'next/server';
-import { getAuthUser, unauthorized } from '@/lib/auth-server';
+import { resolveUser } from '@/lib/auth-server';
 import { prisma } from '@/lib/prisma';
 
 type Ctx = { params: { id: string } };
 
 export async function GET(req: NextRequest, { params }: Ctx) {
-  const user = await getAuthUser(req);
-  if (!user) return unauthorized();
+  const user = await resolveUser(req);
   const campaign = await prisma.campaign.findFirst({
     where: { id: params.id, userId: user.id },
     include: { generations: { orderBy: { createdAt: 'desc' } } },
@@ -16,8 +15,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const user = await getAuthUser(req);
-  if (!user) return unauthorized();
+  const user = await resolveUser(req);
   const existing = await prisma.campaign.findFirst({ where: { id: params.id, userId: user.id } });
   if (!existing) return Response.json({ error: 'Campaign not found' }, { status: 404 });
   try {
@@ -40,8 +38,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
 }
 
 export async function DELETE(req: NextRequest, { params }: Ctx) {
-  const user = await getAuthUser(req);
-  if (!user) return unauthorized();
+  const user = await resolveUser(req);
   const existing = await prisma.campaign.findFirst({ where: { id: params.id, userId: user.id } });
   if (!existing) return Response.json({ error: 'Campaign not found' }, { status: 404 });
   await prisma.campaign.delete({ where: { id: params.id } });

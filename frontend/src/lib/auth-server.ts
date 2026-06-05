@@ -4,6 +4,8 @@ import { NextRequest } from 'next/server';
 
 const SECRET = process.env.JWT_SECRET!;
 
+export const PUBLIC_USER_ID = '00000000-0000-0000-0000-000000000001';
+
 export function signToken(userId: string) {
   return jwt.sign({ sub: userId }, SECRET, {
     expiresIn: (process.env.JWT_EXPIRES_IN as any) || '7d',
@@ -19,6 +21,18 @@ export async function getAuthUser(req: NextRequest) {
   } catch {
     return null;
   }
+}
+
+export async function getOrCreatePublicUser() {
+  const existing = await prisma.user.findUnique({ where: { id: PUBLIC_USER_ID } });
+  if (existing) return existing;
+  return prisma.user.create({
+    data: { id: PUBLIC_USER_ID, email: 'public@presenter-ai.app', name: 'Guest' },
+  });
+}
+
+export async function resolveUser(req: NextRequest) {
+  return (await getAuthUser(req)) ?? (await getOrCreatePublicUser());
 }
 
 export function unauthorized() {
