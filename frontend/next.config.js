@@ -8,7 +8,14 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverComponentsExternalPackages: ['bcryptjs'],
+    serverComponentsExternalPackages: ['bcryptjs', '@prisma/client', 'prisma'],
+    outputFileTracingIncludes: {
+      '/api/**/*': [
+        './node_modules/.prisma/client/**/*',
+        './node_modules/@prisma/client/**/*',
+        './prisma/schema.prisma',
+      ],
+    },
   },
 };
 
