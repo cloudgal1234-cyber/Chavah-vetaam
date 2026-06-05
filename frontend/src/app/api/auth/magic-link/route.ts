@@ -5,36 +5,34 @@ import { signToken } from '@/lib/auth-server';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-async function sendMagicLinkEmail(email: string, link: string) {
+async function sendMagicLinkEmail(email: string, link: string): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.log(`[Magic Link] ${link}`);
-    return;
-  }
+  if (!apiKey) return false;
 
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: 'Presenter AI <noreply@presenterai.app>',
-      to: email,
-      subject: 'הקישור שלך לכניסה ל-Presenter AI',
-      html: `
-        <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-          <h2 style="color: #3a47f5;">Presenter AI</h2>
-          <p style="font-size: 16px; color: #333;">לחץ על הכפתור כדי להיכנס לחשבון שלך:</p>
-          <a href="${link}" style="display: inline-block; background: #3a47f5; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold; margin: 16px 0;">
-            כניסה לחשבון
-          </a>
-          <p style="font-size: 13px; color: #888; margin-top: 24px;">הקישור תקף ל-30 דקות ולשימוש חד-פעמי.</p>
-          <p style="font-size: 13px; color: #888;">אם לא ביקשת את הקישור, התעלם מהמייל הזה.</p>
-        </div>
-      `,
-    }),
-  });
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Presenter AI <noreply@presenterai.app>',
+        to: email,
+        subject: 'הקישור שלך לכניסה ל-Presenter AI',
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+            <h2 style="color: #3a47f5;">Presenter AI</h2>
+            <p style="font-size: 16px; color: #333;">לחץ על הכפתור כדי להיכנס לחשבון שלך:</p>
+            <a href="${link}" style="display: inline-block; background: #3a47f5; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold; margin: 16px 0;">
+              כניסה לחשבון
+            </a>
+            <p style="font-size: 13px; color: #888; margin-top: 24px;">הקישור תקף ל-30 דקות ולשימוש חד-פעמי.</p>
+          </div>
+        `,
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -50,9 +48,12 @@ export async function POST(req: NextRequest) {
     await prisma.magicLinkToken.create({ data: { email, token, expiresAt } });
 
     const link = `${APP_URL}/api/auth/magic-link/verify?token=${token}`;
-    await sendMagicLinkEmail(email, link);
 
-    return Response.json({ ok: true });
+    // Try to send email if Resend API key is configured
+    const sent = await sendMagicLinkEmail(email, link);
+
+    // Always return the link so the UI can show it directly
+    return Response.json({ ok: true, link: sent ? null : link });
   } catch (err: any) {
     return Response.json({ error: err.message }, { status: 500 });
   }
