@@ -9,6 +9,7 @@ interface FormData { email: string; password: string; }
 
 const GITHUB_AUTH_URL = '/api/auth/github';
 const GOOGLE_AUTH_URL = '/api/auth/google';
+const GOOGLE_ENABLED = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export default function LoginPage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
@@ -41,13 +42,15 @@ export default function LoginPage() {
             <GitHubIcon />
             כניסה עם GitHub
           </a>
-          <a
-            href={GOOGLE_AUTH_URL}
-            className="flex items-center justify-center gap-3 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition active:scale-95"
-          >
-            <GoogleIcon />
-            כניסה עם Google
-          </a>
+          {GOOGLE_ENABLED && (
+            <a
+              href={GOOGLE_AUTH_URL}
+              className="flex items-center justify-center gap-3 w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition active:scale-95"
+            >
+              <GoogleIcon />
+              כניסה עם Google
+            </a>
+          )}
         </div>
 
         <div className="flex items-center gap-3 mb-5">

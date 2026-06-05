@@ -65,6 +65,7 @@ jobs:
           add_env "GOOGLE_CLIENT_ID"    "${{ secrets.GOOGLE_CLIENT_ID }}"
           add_env "GOOGLE_CLIENT_SECRET" "${{ secrets.GOOGLE_CLIENT_SECRET }}"
           add_env "GOOGLE_CALLBACK_URL" "$NEXT_PUBLIC_APP_URL/api/auth/google/callback"
+          add_env "NEXT_PUBLIC_GOOGLE_CLIENT_ID" "${{ secrets.GOOGLE_CLIENT_ID }}"
 
           echo "✅ Environment variables set"
 

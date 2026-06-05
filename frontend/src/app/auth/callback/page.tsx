@@ -13,6 +13,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   google_token: 'שגיאה בקבלת אסימון מ-Google. אנא נסה שוב.',
   google_no_email: 'לא ניתן לקבל אימייל מחשבון Google שלך. אנא נסה שוב.',
   google_error: 'הכניסה עם Google נכשלה. אנא נסה שוב.',
+  google_not_configured: 'הכניסה עם Google אינה זמינה כרגע.',
 };
 
 function CallbackHandler() {
