@@ -18,13 +18,16 @@ export async function GET(req: NextRequest) {
         code,
         client_id: process.env.GOOGLE_CLIENT_ID!,
         client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-        redirect_uri: process.env.GOOGLE_CALLBACK_URL!,
+        redirect_uri: `${APP_URL}/api/auth/google/callback`,
         grant_type: 'authorization_code',
       }),
     });
     const tokenData = await tokenRes.json();
     const accessToken = tokenData.access_token;
-    if (!accessToken) return Response.redirect(`${APP_URL}/auth/login?error=google_token`);
+    if (!accessToken) {
+      console.error('Google token exchange failed:', JSON.stringify(tokenData));
+      return Response.redirect(`${APP_URL}/auth/login?error=google_token`);
+    }
 
     const profileRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${accessToken}` },
