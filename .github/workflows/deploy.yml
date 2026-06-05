@@ -47,12 +47,33 @@ jobs:
           mkdir -p .vercel
           echo "{\"projectId\":\"$PROJECT_ID\",\"orgId\":\"$ORG_ID\"}" > .vercel/project.json
 
-          # Add environment variables
+          # Fetch all existing env var IDs once
+          ENV_LIST=$(curl -s "https://api.vercel.com/v10/projects/$PROJECT_ID/env?limit=100" \
+            -H "Authorization: Bearer $VERCEL_TOKEN")
+
+          # Upsert env var: PATCH if exists, POST if new
           add_env() {
-            curl -s -X POST "https://api.vercel.com/v10/projects/$PROJECT_ID/env" \
-              -H "Authorization: Bearer $VERCEL_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"key\":\"$1\",\"value\":\"$2\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\"]}" > /dev/null
+            local KEY="$1"
+            local VALUE="$2"
+            local ENV_ID
+            ENV_ID=$(echo "$ENV_LIST" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+envs = data.get('envs', [])
+match = next((e for e in envs if e['key'] == '$KEY'), None)
+print(match['id'] if match else '')
+" 2>/dev/null)
+            if [ -n "$ENV_ID" ]; then
+              curl -s -X PATCH "https://api.vercel.com/v10/projects/$PROJECT_ID/env/$ENV_ID" \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "{\"value\":\"$VALUE\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\"]}" > /dev/null
+            else
+              curl -s -X POST "https://api.vercel.com/v10/projects/$PROJECT_ID/env" \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "{\"key\":\"$KEY\",\"value\":\"$VALUE\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\"]}" > /dev/null
+            fi
           }
 
           add_env "DATABASE_URL"        "$DATABASE_URL"
