@@ -14,6 +14,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   google_no_email: 'לא ניתן לקבל אימייל מחשבון Google שלך. אנא נסה שוב.',
   google_error: 'הכניסה עם Google נכשלה. אנא נסה שוב.',
   google_not_configured: 'הכניסה עם Google אינה זמינה כרגע.',
+  magic_expired: 'הקישור פג תוקף או כבר נוצל. בקש קישור חדש.',
+  magic_invalid: 'קישור לא תקין. אנא נסה שוב.',
 };
 
 function CallbackHandler() {
