@@ -56,13 +56,7 @@ jobs:
             local KEY="$1"
             local VALUE="$2"
             local ENV_ID
-            ENV_ID=$(echo "$ENV_LIST" | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-envs = data.get('envs', [])
-match = next((e for e in envs if e['key'] == '$KEY'), None)
-print(match['id'] if match else '')
-" 2>/dev/null)
+            ENV_ID=$(echo "$ENV_LIST" | python3 -c "import sys,json; d=json.load(sys.stdin); m=next((e for e in d.get('envs',[]) if e['key']=='$KEY'),None); print(m['id'] if m else '')" 2>/dev/null)
             if [ -n "$ENV_ID" ]; then
               curl -s -X PATCH "https://api.vercel.com/v10/projects/$PROJECT_ID/env/$ENV_ID" \
                 -H "Authorization: Bearer $VERCEL_TOKEN" \
