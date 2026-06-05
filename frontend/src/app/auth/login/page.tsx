@@ -1,34 +1,17 @@
 'use client';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store';
-
-interface FormData { email: string; password: string; }
 
 const GITHUB_AUTH_URL = '/api/auth/github';
 const GOOGLE_AUTH_URL = '/api/auth/google';
 
 export default function LoginPage() {
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
-  const { login } = useAuthStore();
-  const router = useRouter();
   const [magicEmail, setMagicEmail] = useState('');
   const [magicSent, setMagicSent] = useState(false);
   const [magicLoading, setMagicLoading] = useState(false);
-
-  const onSubmit = async (data: FormData) => {
-    try {
-      await login(data.email, data.password);
-      toast.success('ברוך שובך!');
-      router.push('/dashboard');
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'הכניסה נכשלה');
-    }
-  };
 
   const sendMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +51,7 @@ export default function LoginPage() {
         </div>
 
         {/* Magic link */}
-        <div className="mb-5">
+        <div>
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 h-px bg-gray-200" />
             <span className="text-xs text-gray-400">כניסה ללא סיסמה</span>
@@ -99,32 +82,6 @@ export default function LoginPage() {
             </form>
           )}
         </div>
-
-        {/* Email + password */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span className="text-xs text-gray-400">או כנס עם סיסמה</span>
-          <div className="flex-1 h-px bg-gray-200" />
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">אימייל</label>
-            <input type="email" className="input" placeholder="you@example.com"
-              {...register('email', { required: 'חובה להזין אימייל' })} />
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">סיסמה</label>
-            <input type="password" className="input" placeholder="••••••••"
-              {...register('password', { required: 'חובה להזין סיסמה' })} />
-            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-          </div>
-          <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-2.5">
-            {isSubmitting ? 'נכנס…' : 'כניסה'}
-          </button>
-        </form>
-
       </div>
     </div>
   );
