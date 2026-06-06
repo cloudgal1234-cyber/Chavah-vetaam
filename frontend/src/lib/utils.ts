@@ -11,9 +11,10 @@ export function formatDate(iso: string) {
 
 export const MEDIA_TYPE_LABELS: Record<string, string> = {
   VIDEO: 'סרטון פרסומת AI',
-  IMAGE: 'תמונת מוצר',
+  IMAGE: 'תמונה',
   AUDIO: 'פסקול',
   UGC: 'מגיש UGC',
+  TEXT: 'טקסט שיווקי',
 };
 
 export const STATUS_COLORS: Record<string, string> = {

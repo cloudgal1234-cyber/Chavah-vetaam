@@ -48,19 +48,19 @@ export default function NewCampaignPage() {
     <div className="p-8 max-w-2xl mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">קמפיין חדש</h1>
-        <p className="text-gray-500 text-sm mt-1">מלא את פרטי המוצר כדי להתחיל ליצור תוכן AI.</p>
+        <p className="text-gray-500 text-sm mt-1">מלא את פרטי המוצר או השירות כדי להתחיל ליצור תוכן AI.</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="card p-6 space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">שם הקמפיין *</label>
-          <input className="input" placeholder="השקת מוצר קיץ" {...register('title', { required: 'חובה להזין שם' })} />
+          <input className="input" placeholder="השקת קיץ" {...register('title', { required: 'חובה להזין שם' })} />
           {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">תיאור המוצר</label>
-          <textarea className="input min-h-[80px] resize-y" placeholder="תאר את המוצר ויתרונותיו…" {...register('description')} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">תיאור המוצר / השירות</label>
+          <textarea className="input min-h-[80px] resize-y" placeholder="תאר את המוצר או השירות ויתרונותיו…" {...register('description')} />
         </div>
 
         <div>
@@ -69,12 +69,12 @@ export default function NewCampaignPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">תסריט / טקסט לפסקול</label>
-          <textarea className="input min-h-[100px] resize-y" placeholder="כתוב את הטקסט שמגיש ה-AI יגיד…" {...register('script')} />
+          <label className="block text-sm font-medium text-gray-700 mb-1">תסריט / טקסט בסיס ל-AI</label>
+          <textarea className="input min-h-[100px] resize-y" placeholder="כתוב את המסר העיקרי שה-AI ישתמש בו ליצירת התוכן…" {...register('script')} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">תמונת מוצר</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">תמונה (מוצר / שירות / לוגו)</label>
           <div className="flex items-start gap-4">
             <label className="btn-secondary cursor-pointer">
               העלה תמונה

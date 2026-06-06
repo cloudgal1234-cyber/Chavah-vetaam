@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'campaignId and mediaType are required' }, { status: 400 });
     }
 
-    const validTypes = ['VIDEO', 'IMAGE', 'AUDIO', 'UGC'];
+    const validTypes = ['VIDEO', 'IMAGE', 'AUDIO', 'UGC', 'TEXT'];
     if (!validTypes.includes(mediaType)) {
       return Response.json({ error: `mediaType must be one of: ${validTypes.join(', ')}` }, { status: 400 });
     }

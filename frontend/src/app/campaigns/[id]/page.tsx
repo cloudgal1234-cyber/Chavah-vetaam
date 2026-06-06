@@ -14,15 +14,17 @@ interface Campaign {
 interface Generation {
   id: string; mediaType: string; status: string; resultUrl?: string;
   thumbnailUrl?: string; creditsUsed: number; createdAt: string; errorMessage?: string;
+  metadata?: Record<string, any>;
 }
 
-const MEDIA_TYPES = ['VIDEO', 'IMAGE', 'AUDIO', 'UGC'] as const;
+const MEDIA_TYPES = ['VIDEO', 'IMAGE', 'AUDIO', 'UGC', 'TEXT'] as const;
 
 const MEDIA_TYPE_ICONS: Record<string, string> = {
   VIDEO: '🎬',
   IMAGE: '📸',
   AUDIO: '🎵',
   UGC: '🤳',
+  TEXT: '✍️',
 };
 
 export default function CampaignDetailPage() {
@@ -120,7 +122,7 @@ export default function CampaignDetailPage() {
           <h2 className="text-lg font-semibold mb-3">נכסים שנוצרו ({campaign.generations.length})</h2>
           <div className="space-y-3">
             {campaign.generations.map((g) => (
-              <div key={g.id} className="card p-4 flex items-center gap-4">
+              <div key={g.id} className={`card p-4 ${g.mediaType === 'TEXT' ? 'block' : 'flex items-center gap-4'}`}>
                 <div className="h-14 w-14 rounded-lg bg-brand-50 flex items-center justify-center text-2xl flex-shrink-0">
                   {MEDIA_TYPE_ICONS[g.mediaType] ?? '🎬'}
                 </div>
@@ -132,7 +134,10 @@ export default function CampaignDetailPage() {
                   <p className="text-xs text-gray-400 mt-0.5">{formatDate(g.createdAt)}</p>
                   {g.errorMessage && <p className="text-xs text-red-500 mt-0.5">{g.errorMessage}</p>}
                 </div>
-                {g.status === 'COMPLETED' && g.resultUrl && (
+                {g.status === 'COMPLETED' && g.mediaType === 'TEXT' && (g as any).metadata?.text && (
+                  <TextResult text={(g as any).metadata.text} />
+                )}
+                {g.status === 'COMPLETED' && g.mediaType !== 'TEXT' && g.resultUrl && (
                   <a href={g.resultUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary text-xs flex-shrink-0">
                     הורד
                   </a>
@@ -142,6 +147,23 @@ export default function CampaignDetailPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TextResult({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="mt-3 w-full border border-gray-200 rounded-lg p-3 bg-gray-50">
+      <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans">{text}</pre>
+      <button onClick={copy} className="mt-2 text-xs text-brand-600 hover:underline">
+        {copied ? '✓ הועתק' : 'העתק טקסט'}
+      </button>
     </div>
   );
 }

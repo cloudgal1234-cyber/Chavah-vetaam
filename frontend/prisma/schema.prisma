@@ -25,6 +25,7 @@ enum MediaType {
   IMAGE
   AUDIO
   UGC
+  TEXT
 }
 
 model User {
