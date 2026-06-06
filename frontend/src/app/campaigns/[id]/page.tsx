@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store';
 import { formatDate, MEDIA_TYPE_LABELS, STATUS_COLORS, STATUS_LABELS } from '@/lib/utils';
 
 interface Campaign {
@@ -29,7 +28,6 @@ const MEDIA_TYPE_ICONS: Record<string, string> = {
 export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { refreshUser } = useAuthStore();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [generating, setGenerating] = useState<string | null>(null);
   const [pollingId, setPollingId] = useState<string | null>(null);
@@ -49,13 +47,12 @@ export default function CampaignDetailPage() {
         setPollingId(null);
         setGenerating(null);
         fetchCampaign();
-        refreshUser();
         if (data.status === 'COMPLETED') toast.success('היצירה הושלמה! 🎉');
         else toast.error('היצירה נכשלה');
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [pollingId, fetchCampaign, refreshUser]);
+  }, [pollingId, fetchCampaign]);
 
   const startGeneration = async (mediaType: string) => {
     setGenerating(mediaType);
