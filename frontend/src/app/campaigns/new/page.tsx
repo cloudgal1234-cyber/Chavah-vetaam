@@ -1,5 +1,4 @@
 'use client';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -15,28 +14,11 @@ interface FormData {
 
 export default function NewCampaignPage() {
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const router = useRouter();
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
 
   const onSubmit = async (data: FormData) => {
     try {
-      const formData = new FormData();
-      Object.entries(data).forEach(([k, v]) => v && formData.append(k, v));
-      if (imageFile) formData.append('productImage', imageFile);
-
-      const { data: campaign } = await api.post('/api/campaigns', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
+      const { data: campaign } = await api.post('/api/campaigns', data);
       toast.success('הקמפיין נוצר!');
       router.push(`/campaigns/${campaign.id}`);
     } catch (err: any) {
@@ -74,21 +56,8 @@ export default function NewCampaignPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">תמונה (מוצר / שירות / לוגו)</label>
-          <div className="flex items-start gap-4">
-            <label className="btn-secondary cursor-pointer">
-              העלה תמונה
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-            </label>
-            {imagePreview && (
-              <img src={imagePreview} alt="תצוגה מקדימה" className="h-20 w-20 rounded-lg object-cover border border-gray-200" />
-            )}
-          </div>
-          {!imageFile && (
-            <div className="mt-2">
-              <input className="input" placeholder="או הדבק קישור לתמונה" {...register('productImageUrl')} />
-            </div>
-          )}
+          <label className="block text-sm font-medium text-gray-700 mb-1">קישור לתמונה (מוצר / שירות / לוגו)</label>
+          <input className="input" placeholder="https://example.com/image.jpg" {...register('productImageUrl')} />
         </div>
 
         <div className="flex gap-3 pt-2">

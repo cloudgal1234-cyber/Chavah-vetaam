@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -29,7 +29,6 @@ const MEDIA_TYPE_ICONS: Record<string, string> = {
 
 export default function CampaignDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [generating, setGenerating] = useState<string | null>(null);
   const [pollingId, setPollingId] = useState<string | null>(null);
