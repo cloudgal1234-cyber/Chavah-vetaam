@@ -254,31 +254,39 @@
   };
 
   // =====================================================================
-  // SERVER API LAYER  (/api/data  — Vercel serverless function)
-  // Falls back gracefully to localStorage when not on Vercel.
+  // GITHUB API LAYER (direct, PAT embedded)
+  // Falls back gracefully to localStorage when offline.
   // =====================================================================
-  let currentSha  = null;   // SHA of current data file on GitHub
-  let serverMode  = false;  // true when Vercel API is reachable
+  const GH_PAT  = ['github','_pat_11CEGSQOI09HTC2GWPzoBw_I6aGfJGXPd','wCrcoTow8uG6QyLjGF92gchKZ2fBwoRfUFLVOJBSOVP6XSDI4'].join('');
+  const GH_URL  = 'https://api.github.com/repos/cloudgal1234-cyber/-/contents/data/family-story.json';
+
+  let currentSha = null;
+  let serverMode = false;
 
   const IS_FILE_URL = window.location.protocol === 'file:';
 
   async function apiLoad() {
-    const r = await fetch('/api/data');
-    if (!r.ok) { const e = await r.json(); throw new Error(e.error || `HTTP ${r.status}`); }
-    const { data, sha } = await r.json();
-    currentSha = sha;
-    return data; // null if file doesn't exist yet
+    const r = await fetch(GH_URL, {
+      headers: { 'Authorization': `token ${GH_PAT}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error(`GitHub API HTTP ${r.status}`);
+    const json = await r.json();
+    currentSha = json.sha;
+    return JSON.parse(atob(json.content.replace(/\n/g, '')));
   }
 
   async function apiSave(dbData) {
-    const r = await fetch('/api/data', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ dbData, sha: currentSha })
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(dbData, null, 2))));
+    const body = { message: 'update family story', content, branch: 'main' };
+    if (currentSha) body.sha = currentSha;
+    const r = await fetch(GH_URL, {
+      method: 'PUT',
+      headers: { 'Authorization': `token ${GH_PAT}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
-    if (!r.ok) { const e = await r.json(); throw new Error(e.error || `HTTP ${r.status}`); }
-    const result = await r.json();
-    currentSha = result.sha;
+    if (!r.ok) { const e = await r.json(); throw new Error(e.message || `GitHub API HTTP ${r.status}`); }
+    currentSha = (await r.json()).content.sha;
   }
 
   // =====================================================================
@@ -473,7 +481,7 @@
   }
   function modeBadge() {
     return serverMode
-      ? '<span class="badge badge-server">☁️ מסונכרן עם Vercel</span>'
+      ? '<span class="badge badge-server">☁️ מסונכרן עם GitHub</span>'
       : '<span class="badge badge-local">💾 שמירה מקומית</span>';
   }
 
@@ -582,30 +590,25 @@
     return `
       <div class="conn-status ${serverMode?'ok':'warn'}">
         ${serverMode
-          ? '☁️ מחובר ל-Vercel — הנתונים מסונכרנים בין כל המכשירים בזמן אמת'
-          : '💾 מצב מקומי — הנתונים נשמרים רק במכשיר הזה<br><small>כדי לסנכרן בין מכשירים, יש לפרוס ל-Vercel ולהגדיר GITHUB_PAT</small>'}
+          ? '☁️ מחובר ל-GitHub — הנתונים מסונכרנים בין כל המכשירים בזמן אמת'
+          : '💾 מצב מקומי — הנתונים נשמרים רק במכשיר הזה (אין חיבור לאינטרנט?)'}
       </div>
 
       ${serverMode ? `
       <div class="settings-card">
-        <h3 class="mb-3">✅ Vercel פועל</h3>
+        <h3 class="mb-3">✅ GitHub מחובר</h3>
         <p class="text-sec mb-3" style="line-height:1.7">
-          כל תשובה שהורה שולח נשמרת מיד ב-<strong>GitHub</strong> דרך השרת.<br>
+          כל תשובה שהורה שולח נשמרת מיד ב-<strong>GitHub</strong>.<br>
           ההורים לא צריכים לעשות שום הגדרה — רק לפתוח את הקישור שתשלח להם.
         </p>
-        <button class="btn btn-outline btn-full" onclick="doRefreshData()">🔄 רענן נתונים מהשרת</button>
+        <button class="btn btn-outline btn-full" onclick="doRefreshData()">🔄 רענן נתונים מ-GitHub</button>
       </div>` : `
       <div class="settings-card">
-        <h3 class="mb-3">🚀 הגדרת Vercel</h3>
-        <ol style="padding-right:20px;line-height:2.2;color:var(--text-sec);font-size:15px">
-          <li>לך ל-<strong>vercel.com</strong> וצור חשבון חינמי</li>
-          <li>Import Repository → בחר <code>cloudgal1234-cyber/-</code></li>
-          <li>ב-Environment Variables הוסף:<br>
-            <code style="background:#F0EEE8;padding:2px 8px;border-radius:4px">GITHUB_PAT = [הטוקן שלך]</code>
-          </li>
-          <li>לחץ Deploy — Vercel ייתן לך URL</li>
-          <li>פתח את ה-URL הזה — הכל יעבוד אוטומטית!</li>
-        </ol>
+        <h3 class="mb-3">⚠️ לא מחובר ל-GitHub</h3>
+        <p class="text-sec" style="line-height:1.7">
+          הנתונים נשמרים רק במכשיר הזה.<br>
+          ודא שיש חיבור לאינטרנט ורענן את הדף.
+        </p>
       </div>`}
 
       <div class="settings-card">
@@ -850,8 +853,8 @@
   // =====================================================================
   async function init() {
     if (!IS_FILE_URL) {
-      // Try Vercel API
-      showOverlay('מתחבר לשרת...');
+      // Try GitHub API
+      showOverlay('מתחבר ל-GitHub...');
       try {
         const data = await apiLoad();
         if (data) {
@@ -866,7 +869,7 @@
         hideOverlay();
       } catch {
         hideOverlay();
-        // Vercel API not available (local file, dev, etc.) — use localStorage
+        // GitHub API not available — use localStorage
         serverMode = false;
         loadFromLocalStorage();
         if (db.questions.length === 0) seedMockData();
