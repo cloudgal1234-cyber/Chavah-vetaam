@@ -853,9 +853,9 @@
   async function doTestGH() {
     showToast('⏳ בודק חיבור...',8000);
     try {
-      const r=await fetch(GH_URL,{headers:{'Authorization':`token ${GH_PAT}`,'Accept':'application/vnd.github.v3+json'}});
+      const r=await fetch(GH_URL+'?ref=main',{headers:{'Authorization':`token ${GH_PAT}`,'Accept':'application/vnd.github.v3+json'}});
       showToast(`תשובה מ-GitHub: HTTP ${r.status}`);
-      if(r.ok){ serverMode=true; _ghLastError=''; render(); showToast('✅ מחובר! מרענן...'); }
+      if(r.ok){ const j=await r.json(); currentSha=j.sha; serverMode=true; _ghLastError=''; db=JSON.parse(atob(j.content.replace(/\n/g,''))); if(!db.questions||db.questions.length===0){seedMockData();await apiSave(db);} render(); showToast('✅ מחובר ל-GitHub!'); }
     } catch(e){ showToast('❌ שגיאת רשת: '+e.message); }
   }
 
