@@ -347,9 +347,9 @@
     db.sent[qId][pId]=true;
     await persistDB();
   }
-  async function saveAnswer(qId, pId, text, imageData) {
+  async function saveAnswer(qId, pId, text, imageData, videoPath) {
     const idx=db.answers.findIndex(a=>a.questionId===qId&&a.parentId===pId);
-    const entry={ id:'a'+(db.nextId++), questionId:qId, parentId:pId, text:text.trim(), imageData:imageData||null, timestamp:new Date().toISOString() };
+    const entry={ id:'a'+(db.nextId++), questionId:qId, parentId:pId, text:text.trim(), imageData:imageData||null, videoPath:videoPath||null, timestamp:new Date().toISOString() };
     if(idx>=0) db.answers[idx]=entry; else db.answers.push(entry);
     await persistDB();
   }
@@ -470,9 +470,43 @@
   function stopMic() { if(recognition&&isRecording){ recognition.stop(); isRecording=false; } }
 
   // =====================================================================
-  // IMAGE STATE
+  // IMAGE & VIDEO STATE
   // =====================================================================
   let pendingImage=null;
+  let pendingVideo=null;  // { file, localUrl }
+  const videoUrlCache={};  // videoPath → objectUrl
+
+  async function uploadVideoToGitHub(file, qId, pId) {
+    const ext=(file.name.split('.').pop()||'mp4').toLowerCase();
+    const path=`data/videos/${qId}-${pId}-${Date.now()}.${ext}`;
+    const base64=await new Promise((res,rej)=>{
+      const r=new FileReader(); r.onerror=rej;
+      r.onload=()=>res(r.result.split(',')[1]);
+      r.readAsDataURL(file);
+    });
+    const url=`https://api.github.com/repos/cloudgal1234-cyber/-/contents/${path}`;
+    const r=await fetch(url,{method:'PUT',headers:{'Authorization':`token ${GH_PAT}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:'add video',content:base64,branch:'main'})});
+    if(!r.ok){ const e=await r.json(); throw new Error(e.message||'שגיאה בהעלאת הווידיאו'); }
+    return path;
+  }
+
+  async function getVideoObjectUrl(videoPath) {
+    if(videoUrlCache[videoPath]) return videoUrlCache[videoPath];
+    const r=await fetch(`https://api.github.com/repos/cloudgal1234-cyber/-/contents/${videoPath}`,{headers:{'Authorization':`token ${GH_PAT}`}});
+    const json=await r.json();
+    let blob;
+    if(json.content){
+      const bin=atob(json.content.replace(/\n/g,'')); const bytes=new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+      blob=new Blob([bytes],{type:'video/mp4'});
+    } else {
+      const raw=await fetch(json.download_url,{headers:{'Authorization':`token ${GH_PAT}`}});
+      blob=await raw.blob();
+    }
+    const objUrl=URL.createObjectURL(blob);
+    videoUrlCache[videoPath]=objUrl;
+    return objUrl;
+  }
 
   // =====================================================================
   // BADGE HELPERS
@@ -628,7 +662,7 @@
   // VIEW: ANSWER
   // =====================================================================
   function renderAnswer(params) {
-    stopMic(); pendingImage=null;
+    stopMic(); pendingImage=null; pendingVideo=null;
     const {parent:pId,q:qId}=params, p=PARENTS[pId], q=getQ(qId);
     if(!p||!q){
       document.getElementById('app').innerHTML=`<div class="home-page"><div style="font-size:64px;margin-bottom:20px">😕</div><h2 style="text-align:center">הקישור אינו תקין</h2><p class="text-sec mt-3" style="text-align:center">ייתכן שהקישור שגוי.</p><button class="btn btn-primary mt-4" onclick="navigate('home')">לדף הבית</button></div>`;
@@ -636,6 +670,7 @@
     }
     const existing=getAnswerFor(qId,pId);
     if(existing) pendingImage=existing.imageData;
+    const hasVideo=!!(existing?.videoPath);
     const hasSpeech=initSpeech();
     document.getElementById('app').innerHTML=`
       <div class="answer-page">
@@ -671,6 +706,20 @@
             </div>
             <input type="file" id="img-file" accept="image/*" style="display:none" onchange="handleImgSelect(this)">
           </div>
+          <div class="form-group">
+            <label class="form-label">🎥 הוסף ווידיאו (אופציונלי)</label>
+            <div id="vid-preview-wrap" class="${hasVideo?'':'hidden'}" style="position:relative;margin-bottom:8px">
+              <video id="vid-preview" controls style="width:100%;border-radius:12px;max-height:280px;background:#000"></video>
+              <button class="img-remove-btn" onclick="removeVideo()">✕</button>
+            </div>
+            <div id="vid-upload-area" class="img-upload-area ${pId} ${hasVideo?'hidden':''}" onclick="document.getElementById('vid-file').click()">
+              <div class="img-upload-icon">🎥</div>
+              <div class="img-upload-text">לחץ/י להעלאת ווידיאו</div>
+              <div class="img-upload-sub">עד 25MB · MP4, MOV 📱</div>
+            </div>
+            <input type="file" id="vid-file" accept="video/*" style="display:none" onchange="handleVideoSelect(this)">
+            <div id="vid-progress" class="hidden" style="margin-top:8px;font-size:14px;color:var(--text-sec);text-align:center">⏳ מעלה ווידיאו — אנא המתן...</div>
+          </div>
         </div>
         <div class="submit-area">
           <button id="submit-btn" class="btn btn-${pId} btn-lg btn-full" onclick="doSubmitAnswer('${qId}','${pId}')">
@@ -700,7 +749,8 @@
     } else {
       const p=PARENTS[pId], answers=getParentAns(pId);
       const cards=answers.map((ans,i)=>{ const q=getQ(ans.questionId); if(!q) return '';
-        return `<div class="story-card"><div class="story-header ${pId}"><div class="story-num">סיפור ${i+1}</div><div class="story-q">${esc(q.text)}</div></div>${ans.imageData?`<img src="${ans.imageData}" class="story-img" alt="תמונה">`:''}<div class="story-body"><div class="story-text">${esc(ans.text).replace(/\n/g,'<br>')}</div><div class="story-date">✍️ ${fmtDate(ans.timestamp)}</div></div></div>`; }).join('');
+        const vidHtml=ans.videoPath?`<div id="storyv-${ans.id}" style="margin:12px 0"><button class="btn btn-outline btn-sm btn-full" onclick="loadStoryVideo('${ans.id}','${esc(ans.videoPath)}')">▶ הצג ווידיאו</button></div>`:'';
+        return `<div class="story-card"><div class="story-header ${pId}"><div class="story-num">סיפור ${i+1}</div><div class="story-q">${esc(q.text)}</div></div>${ans.imageData?`<img src="${ans.imageData}" class="story-img" alt="תמונה">`:''}${vidHtml}<div class="story-body"><div class="story-text">${esc(ans.text).replace(/\n/g,'<br>')}</div><div class="story-date">✍️ ${fmtDate(ans.timestamp)}</div></div></div>`; }).join('');
       document.getElementById('app').innerHTML=`
         <div class="book-page">
           <div class="stories-header ${pId}">
@@ -790,6 +840,15 @@
   }
   async function doDeleteQuestion(qId) { await deleteQuestion(qId); closeModal(); showToast('🗑️ השאלה נמחקה'); }
 
+  async function loadStoryVideo(answerId, videoPath) {
+    const wrap=document.getElementById('storyv-'+answerId); if(!wrap) return;
+    wrap.innerHTML='<p style="font-size:13px;color:var(--text-sec);padding:8px 0">⏳ טוען ווידיאו...</p>';
+    try {
+      const url=await getVideoObjectUrl(videoPath);
+      wrap.innerHTML=`<video src="${url}" controls style="width:100%;border-radius:12px;max-height:300px;margin-top:4px"></video>`;
+    } catch { wrap.innerHTML='<p style="color:#e74c3c;font-size:13px">⚠️ שגיאה בטעינת הווידיאו</p>'; }
+  }
+
   async function doRefreshData() {
     showOverlay('מרענן נתונים מהשרת...');
     try { const data=await apiLoad(); if(data) db=data; hideOverlay(); render(); showToast('✅ הנתונים עודכנו!'); }
@@ -808,6 +867,19 @@
     const reader=new FileReader();
     reader.onload=async e=>{ try{ const data=JSON.parse(e.target.result); if(!data.questions||!data.answers) throw new Error('פורמט לא תקין'); db=data; await persistDB(); render(); showToast('📤 הנתונים יובאו!'); }catch(err){ showToast('❌ '+err.message); } };
     reader.readAsText(file); input.value='';
+  }
+
+  async function handleVideoSelect(input) {
+    const file=input?.files?.[0]; if(!file) return;
+    if(file.size>25*1024*1024){ showToast('⚠️ הווידיאו גדול מדי — מקסימום 25MB'); input.value=''; return; }
+    pendingVideo={file,localUrl:URL.createObjectURL(file)};
+    const prev=document.getElementById('vid-preview'), wrap=document.getElementById('vid-preview-wrap'), area=document.getElementById('vid-upload-area');
+    if(prev){ prev.src=pendingVideo.localUrl; wrap.classList.remove('hidden'); area.classList.add('hidden'); }
+  }
+  function removeVideo() {
+    pendingVideo=null;
+    const prev=document.getElementById('vid-preview'), wrap=document.getElementById('vid-preview-wrap'), area=document.getElementById('vid-upload-area'), inp=document.getElementById('vid-file');
+    if(prev) prev.src=''; if(wrap) wrap.classList.add('hidden'); if(area) area.classList.remove('hidden'); if(inp) inp.value='';
   }
 
   async function handleImgSelect(input) {
@@ -830,8 +902,24 @@
     stopMic();
     const btn=document.getElementById('submit-btn');
     if(btn){ btn.disabled=true; btn.innerHTML='<span class="spinner"></span> שומר...'; }
-    try { await saveAnswer(qId,pId,text,pendingImage); pendingImage=null; navigate('thanks',{parent:pId}); }
-    catch(e){ showToast('❌ שגיאה בשמירה: '+e.message); if(btn){ btn.disabled=false; btn.innerHTML='💛 שמור ושלח לספר המשפחתי'; } }
+    const prog=document.getElementById('vid-progress');
+    try {
+      let videoPath=getAnswerFor(qId,pId)?.videoPath||null;
+      if(pendingVideo && serverMode){
+        if(prog) prog.classList.remove('hidden');
+        showOverlay('מעלה ווידיאו...');
+        videoPath=await uploadVideoToGitHub(pendingVideo.file,qId,pId);
+        hideOverlay(); if(prog) prog.classList.add('hidden');
+      }
+      await saveAnswer(qId,pId,text,pendingImage,videoPath);
+      pendingImage=null; pendingVideo=null;
+      navigate('thanks',{parent:pId});
+    }
+    catch(e){
+      hideOverlay(); if(prog) prog.classList.add('hidden');
+      showToast('❌ שגיאה בשמירה: '+e.message);
+      if(btn){ btn.disabled=false; btn.innerHTML='💛 שמור ושלח לספר המשפחתי'; }
+    }
   }
 
   // =====================================================================
