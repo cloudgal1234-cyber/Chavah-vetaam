@@ -4,7 +4,7 @@ import { Heebo } from 'next/font/google';
 const heebo = Heebo({ subsets: ['hebrew', 'latin'], weight: ['400', '500', '600', '700', '800'] });
 
 export const metadata: Metadata = {
-  title: 'עגלת הקפה – חווה של פעם',
+  title: 'חווה וטעם – עגלת הקפה',
   description: 'הזמינו קפה ומשקאות מכל מקום בחווה',
 };
 
