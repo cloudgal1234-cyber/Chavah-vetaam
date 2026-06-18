@@ -10,6 +10,7 @@
     "GITHUB_CLIENT_SECRET": "@github_client_secret",
     "GITHUB_CALLBACK_URL": "@github_callback_url",
     "NEXT_PUBLIC_APP_URL": "@next_public_app_url",
-    "DEFAULT_CREDITS": "100"
+    "DEFAULT_CREDITS": "100",
+    "WORKER_PIN": "@worker_pin"
   }
 }

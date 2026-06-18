@@ -94,3 +94,32 @@ model CreditLog {
 
   @@map("credit_logs")
 }
+
+model CoffeeMenuItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  emoji       String   @default("☕")
+  category    String   @default("משקאות")
+  available   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("coffee_menu_items")
+}
+
+model CoffeeOrder {
+  id           Int      @id @default(autoincrement())
+  orderNumber  String   @unique @default(cuid())
+  customerName String
+  tableNote    String?
+  items        Json
+  total        Float
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("coffee_orders")
+}
