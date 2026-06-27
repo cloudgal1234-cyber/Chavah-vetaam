@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
       emoji: body.emoji ?? '☕',
       category: body.category ?? 'משקאות',
       sortOrder: body.sortOrder ?? 0,
+      ingredients: Array.isArray(body.ingredients) ? body.ingredients : [],
     },
   });
   return NextResponse.json(item, { status: 201 });

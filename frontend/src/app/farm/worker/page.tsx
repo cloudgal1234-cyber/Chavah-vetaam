@@ -153,7 +153,7 @@ function MenuManager({ pin }: { pin: string }) {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '', price: '', emoji: '☕', category: 'משקאות חמים' });
+  const [form, setForm] = useState({ name: '', description: '', price: '', emoji: '☕', category: 'משקאות חמים', ingredients: '' });
   const [saving, setSaving] = useState(false);
 
   const fetchItems = useCallback(async () => {
@@ -180,11 +180,15 @@ function MenuManager({ pin }: { pin: string }) {
     const res = await fetch('/api/farm/menu', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-worker-pin': pin },
-      body: JSON.stringify({ ...form, price: parseFloat(form.price) }),
+      body: JSON.stringify({
+        ...form,
+        price: parseFloat(form.price),
+        ingredients: form.ingredients ? form.ingredients.split(',').map(s => s.trim()).filter(Boolean) : [],
+      }),
     });
     const newItem = await res.json();
     setItems(prev => [...prev, newItem]);
-    setForm({ name: '', description: '', price: '', emoji: '☕', category: 'משקאות חמים' });
+    setForm({ name: '', description: '', price: '', emoji: '☕', category: 'משקאות חמים', ingredients: '' });
     setAdding(false);
     setSaving(false);
   }
@@ -210,6 +214,7 @@ function MenuManager({ pin }: { pin: string }) {
             { label: 'תיאור', key: 'description', placeholder: 'תיאור קצר (אופציונלי)', type: 'text' },
             { label: 'מחיר (₪)', key: 'price', placeholder: '0', type: 'number' },
             { label: 'אמוג׳י', key: 'emoji', placeholder: '☕', type: 'text' },
+            { label: 'מרכיבים', key: 'ingredients', placeholder: 'חלב, קפה, סוכר (מופרד בפסיקים)', type: 'text' },
           ].map(f => (
             <div key={f.key}>
               <label className="block text-xs text-stone-400 mb-1">{f.label}</label>

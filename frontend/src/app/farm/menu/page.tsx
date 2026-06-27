@@ -10,6 +10,7 @@ type MenuItem = {
   price: number;
   emoji: string;
   category: string;
+  ingredients: string[] | null;
 };
 
 type CartItem = MenuItem & { quantity: number };
@@ -134,7 +135,14 @@ export default function MenuPage() {
                   <div className="text-4xl text-center mb-2">{item.emoji}</div>
                   <h3 className="font-bold text-stone-800 text-center text-sm leading-tight">{item.name}</h3>
                   {item.description && (
-                    <p className="text-xs text-stone-400 text-center mt-1 flex-1 leading-relaxed">{item.description}</p>
+                    <p className="text-xs text-stone-400 text-center mt-1 leading-relaxed">{item.description}</p>
+                  )}
+                  {item.ingredients && item.ingredients.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-1 mt-1.5 flex-1">
+                      {item.ingredients.map((ing, i) => (
+                        <span key={i} className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-1.5 py-0.5 leading-none">{ing}</span>
+                      ))}
+                    </div>
                   )}
                   <div className="mt-3 flex items-center justify-between">
                     <span className="font-bold text-amber-700 text-base">₪{item.price}</span>
