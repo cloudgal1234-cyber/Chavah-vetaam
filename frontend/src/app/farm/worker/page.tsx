@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-type OrderItem = { id: number; name: string; price: number; emoji: string; quantity: number };
+type OrderItem = { id: number; name: string; price: number; emoji: string; quantity: number; milkChoice?: string };
 type Order = {
   id: number;
   orderNumber: string;
@@ -127,6 +127,7 @@ function OrderCard({ order, pin, onDone }: { order: Order; pin: string; onDone: 
           <li key={idx} className="flex justify-between items-center text-sm">
             <span className="text-stone-200">
               {item.emoji} {item.name}
+              {item.milkChoice && <span className="text-amber-400 text-xs mr-1">({item.milkChoice})</span>}
               <span className="text-stone-400 mr-1">×{item.quantity}</span>
             </span>
             <span className="text-amber-400 font-medium">₪{item.price * item.quantity}</span>
@@ -148,10 +149,11 @@ function OrderCard({ order, pin, onDone }: { order: Order; pin: string; onDone: 
   );
 }
 
-type EditForm = { name: string; description: string; price: string; emoji: string; category: string; ingredients: string };
+type EditForm = { name: string; description: string; price: string; emoji: string; category: string; ingredients: string; milkOptions: string[] };
 
-const EMPTY_FORM: EditForm = { name: '', description: '', price: '', emoji: '☕', category: 'משקאות חמים', ingredients: '' };
+const EMPTY_FORM: EditForm = { name: '', description: '', price: '', emoji: '☕', category: 'משקאות חמים', ingredients: '', milkOptions: [] };
 const CATEGORIES = ['משקאות חמים', 'משקאות קרים', 'מאפים וממתקים', 'חלבים', 'אחר'];
+const MILK_OPTIONS_LIST = ['רגיל', 'שקדים', 'שיבולת שועל', 'סויה', 'ללא חלב'];
 const FORM_FIELDS = [
   { label: 'שם', key: 'name', placeholder: 'שם הפריט', type: 'text' },
   { label: 'תיאור', key: 'description', placeholder: 'תיאור קצר (אופציונלי)', type: 'text' },
@@ -160,7 +162,7 @@ const FORM_FIELDS = [
   { label: 'מרכיבים', key: 'ingredients', placeholder: 'חלב, קפה, סוכר (מופרד בפסיקים)', type: 'text' },
 ] as const;
 
-function itemToForm(item: MenuItem & { ingredients?: string[] | null }): EditForm {
+function itemToForm(item: MenuItem & { ingredients?: string[] | null; milkOptions?: string[] | null }): EditForm {
   return {
     name: item.name,
     description: item.description ?? '',
@@ -168,6 +170,7 @@ function itemToForm(item: MenuItem & { ingredients?: string[] | null }): EditFor
     emoji: item.emoji,
     category: item.category,
     ingredients: Array.isArray(item.ingredients) ? item.ingredients.join(', ') : '',
+    milkOptions: Array.isArray(item.milkOptions) ? item.milkOptions : [],
   };
 }
 
@@ -179,6 +182,7 @@ function formToPayload(form: EditForm) {
     emoji: form.emoji,
     category: form.category,
     ingredients: form.ingredients ? form.ingredients.split(',').map(s => s.trim()).filter(Boolean) : [],
+    milkOptions: form.milkOptions,
   };
 }
 
@@ -212,6 +216,36 @@ function ItemForm({
           />
         </div>
       ))}
+      <div>
+        <label className="block text-xs text-stone-400 mb-1">🥛 סוגי חלב זמינים</label>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {MILK_OPTIONS_LIST.map(option => {
+            const selected = form.milkOptions.includes(option);
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setForm({
+                  ...form,
+                  milkOptions: selected
+                    ? form.milkOptions.filter(o => o !== option)
+                    : [...form.milkOptions, option],
+                })}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                  selected
+                    ? 'bg-amber-500 text-white border-amber-500'
+                    : 'bg-stone-700 text-stone-300 border-stone-600 hover:border-amber-500 hover:text-amber-300'
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
+        {form.milkOptions.length === 0 && (
+          <p className="text-xs text-stone-500 mt-1">ללא בחירת חלב (למשקאות ללא חלב)</p>
+        )}
+      </div>
       <div>
         <label className="block text-xs text-stone-400 mb-1">קטגוריה</label>
         <select

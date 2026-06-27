@@ -24,6 +24,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       ...(body.category !== undefined && { category: body.category }),
       ...(body.available !== undefined && { available: body.available }),
       ...(body.ingredients !== undefined && { ingredients: body.ingredients }),
+      ...(body.milkOptions !== undefined && { milkOptions: body.milkOptions }),
     },
   });
   return NextResponse.json(item);

@@ -32,6 +32,7 @@ export async function POST(req: NextRequest) {
       category: body.category ?? 'משקאות',
       sortOrder: body.sortOrder ?? 0,
       ingredients: Array.isArray(body.ingredients) ? body.ingredients : [],
+      milkOptions: Array.isArray(body.milkOptions) ? body.milkOptions : [],
     },
   });
   return NextResponse.json(item, { status: 201 });

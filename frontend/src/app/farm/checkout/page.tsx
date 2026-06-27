@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-type CartItem = { id: number; name: string; price: number; emoji: string; quantity: number };
+type CartItem = { id: number; name: string; price: number; emoji: string; quantity: number; milkChoice?: string };
 
 const CART_KEY = 'farmCart';
 
@@ -51,7 +51,7 @@ export default function CheckoutPage() {
         <p className="text-stone-600 mb-1">מספר הזמנה:</p>
         <div className="bg-amber-700 text-amber-50 text-2xl font-bold px-6 py-3 rounded-2xl my-2 tracking-wider">#{orderNumber}</div>
         <div className="mt-6 bg-white border border-amber-200 rounded-2xl p-5 max-w-sm w-full text-sm text-stone-600 leading-relaxed">
-          <p className="text-base font-semibold text-amber-800 mb-2">☕ ההזמנה מוכנת בקרוב</p>
+          <p className="text-base font-semibold text-amber-800 mb-2">☕ ההזמנה מוכנה בקרוב</p>
           <p>התשלום והאיסוף יתבצעו <strong>בעגלת הקפה</strong>.</p>
           <p className="mt-1">אנא הישארו בסביבה – נקרא לשמכם!</p>
         </div>
@@ -81,6 +81,7 @@ export default function CheckoutPage() {
                   <span className="text-xl">{item.emoji}</span>
                   <div>
                     <p className="font-medium text-stone-800 text-sm">{item.name}</p>
+                    {item.milkChoice && <p className="text-xs text-amber-600">🥛 {item.milkChoice}</p>}
                     <p className="text-xs text-stone-400">₪{item.price} × {item.quantity}</p>
                   </div>
                 </div>

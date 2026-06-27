@@ -11,9 +11,10 @@ type MenuItem = {
   emoji: string;
   category: string;
   ingredients: string[] | null;
+  milkOptions: string[] | null;
 };
 
-type CartItem = MenuItem & { quantity: number };
+type CartItem = MenuItem & { quantity: number; milkChoice?: string };
 
 const CART_KEY = 'farmCart';
 
@@ -23,6 +24,7 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState('הכל');
   const [loading, setLoading] = useState(true);
   const [cartAnimating, setCartAnimating] = useState(false);
+  const [milkSelections, setMilkSelections] = useState<Record<number, string>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -34,8 +36,15 @@ export default function MenuPage() {
   async function fetchMenu() {
     try {
       const res = await fetch('/api/farm/menu');
-      const data = await res.json();
+      const data: MenuItem[] = await res.json();
       setMenuItems(data);
+      const initial: Record<number, string> = {};
+      data.forEach(item => {
+        if (item.milkOptions && item.milkOptions.length > 0) {
+          initial[item.id] = item.milkOptions[0];
+        }
+      });
+      setMilkSelections(initial);
     } finally {
       setLoading(false);
     }
@@ -47,13 +56,14 @@ export default function MenuPage() {
   }, []);
 
   function addToCart(item: MenuItem) {
+    const milkChoice = milkSelections[item.id];
     setCartAnimating(true);
     setTimeout(() => setCartAnimating(false), 300);
     setCart(prev => {
       const existing = prev.find(c => c.id === item.id);
       const newCart = existing
-        ? prev.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c)
-        : [...prev, { ...item, quantity: 1 }];
+        ? prev.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1, milkChoice: milkChoice ?? c.milkChoice } : c)
+        : [...prev, { ...item, quantity: 1, milkChoice }];
       localStorage.setItem(CART_KEY, JSON.stringify(newCart));
       return newCart;
     });
@@ -130,6 +140,8 @@ export default function MenuPage() {
           <div className="grid grid-cols-2 gap-3">
             {filtered.map(item => {
               const cartItem = cart.find(c => c.id === item.id);
+              const selectedMilk = milkSelections[item.id];
+              const hasMilk = item.milkOptions && item.milkOptions.length > 0;
               return (
                 <div key={item.id} className="bg-white rounded-2xl border border-amber-100 shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow">
                   <div className="text-4xl text-center mb-2">{item.emoji}</div>
@@ -138,13 +150,35 @@ export default function MenuPage() {
                     <p className="text-xs text-stone-400 text-center mt-1 leading-relaxed">{item.description}</p>
                   )}
                   {item.ingredients && item.ingredients.length > 0 && (
-                    <div className="flex flex-wrap justify-center gap-1 mt-1.5 flex-1">
+                    <div className="flex flex-wrap justify-center gap-1 mt-1.5">
                       {item.ingredients.map((ing, i) => (
                         <span key={i} className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-1.5 py-0.5 leading-none">{ing}</span>
                       ))}
                     </div>
                   )}
-                  <div className="mt-3 flex items-center justify-between">
+
+                  {hasMilk && (
+                    <div className="mt-2">
+                      <p className="text-[10px] text-stone-400 text-center mb-1">🥛 סוג חלב</p>
+                      <div className="flex flex-wrap justify-center gap-1">
+                        {item.milkOptions!.map(option => (
+                          <button
+                            key={option}
+                            onClick={() => setMilkSelections(prev => ({ ...prev, [item.id]: option }))}
+                            className={`text-[10px] rounded-full px-1.5 py-0.5 leading-none font-medium border transition-colors ${
+                              selectedMilk === option
+                                ? 'bg-amber-600 text-white border-amber-600'
+                                : 'bg-white text-stone-500 border-stone-200 hover:border-amber-300 hover:text-amber-700'
+                            }`}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-auto pt-3 flex items-center justify-between">
                     <span className="font-bold text-amber-700 text-base">₪{item.price}</span>
                     {cartItem ? (
                       <div className="flex items-center gap-1.5">

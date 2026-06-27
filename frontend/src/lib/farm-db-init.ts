@@ -2,17 +2,19 @@ import { prisma } from './prisma';
 
 let initialized = false;
 
+const MILK_OPTIONS = ['רגיל', 'שקדים', 'שיבולת שועל', 'סויה', 'ללא חלב'];
+
 const DEFAULT_MENU = [
-  { name: 'אספרסו', description: 'אספרסו כפול עשיר', price: 12, emoji: '☕', category: 'משקאות חמים', sortOrder: 1, ingredients: ['קפה', 'מים'] },
-  { name: 'קפוצ׹ינו', description: 'קפוצ׹ינו עם חלב מוקצף', price: 16, emoji: '☕', category: 'משקאות חמים', sortOrder: 2, ingredients: ['קפה', 'חלב', 'קצף חלב'] },
-  { name: 'לאטה', description: 'לאטה עם שכבת קצף', price: 17, emoji: '🥛', category: 'משקאות חמים', sortOrder: 3, ingredients: ['קפה', 'חלב מוקצף', 'קצף'] },
-  { name: 'תה נענע', description: 'נענע טרייה מהחווה', price: 10, emoji: '🌿', category: 'משקאות חמים', sortOrder: 4, ingredients: ['נענע טרייה', 'מים', 'סוכר'] },
-  { name: 'קפה פילטר', description: 'קפה מסונן בשיטת קולד-ברו', price: 14, emoji: '🧊', category: 'משקאות קרים', sortOrder: 5, ingredients: ['קפה', 'מים קרים', 'קרח'] },
-  { name: 'לימונדה', description: 'לימונדה ביתית קרה', price: 14, emoji: '🍋', category: 'משקאות קרים', sortOrder: 6, ingredients: ['לימון', 'מים', 'סוכר', 'קרח'] },
-  { name: 'מיץ תפוזים', description: 'מיץ תפוזים סחוט טרי', price: 16, emoji: '🍊', category: 'משקאות קרים', sortOrder: 7, ingredients: ['תפוזים טריים'] },
-  { name: 'עוגת גזר', description: 'עוגת גזר ביתית עם ציפוי', price: 18, emoji: '🥕', category: 'מאפים וממתקים', sortOrder: 8, ingredients: ['גזר', 'קמח', 'סוכר', 'ביצים', 'שמן', 'ציפוי גבינה'] },
-  { name: 'מאפה גבינה', description: 'מאפה גבינה חם מהתנור', price: 16, emoji: '🧀', category: 'מאפים וממתקים', sortOrder: 9, ingredients: ['גבינה', 'בצק', 'ביצים', 'מלח'] },
-  { name: 'קרואסון חמאה', description: 'קרואסון פריך וטרי', price: 14, emoji: '🥐', category: 'מאפים וממתקים', sortOrder: 10, ingredients: ['קמח', 'חמאה', 'שמרים', 'מלח', 'סוכר'] },
+  { name: 'אספרסו', description: 'אספרסו כפול עשיר', price: 12, emoji: '☕', category: 'משקאות חמים', sortOrder: 1, ingredients: ['קפה', 'מים'], milkOptions: [] },
+  { name: 'קפוצ׹ינו', description: 'קפוצ׹ינו עם חלב מוקצף', price: 16, emoji: '☕', category: 'משקאות חמים', sortOrder: 2, ingredients: ['קפה', 'חלב', 'קצף חלב'], milkOptions: MILK_OPTIONS },
+  { name: 'לאטה', description: 'לאטה עם שכבת קצף', price: 17, emoji: '🥛', category: 'משקאות חמים', sortOrder: 3, ingredients: ['קפה', 'חלב מוקצף', 'קצף'], milkOptions: MILK_OPTIONS },
+  { name: 'תה נענע', description: 'נענע טרייה מהחווה', price: 10, emoji: '🌿', category: 'משקאות חמים', sortOrder: 4, ingredients: ['נענע טרייה', 'מים', 'סוכר'], milkOptions: [] },
+  { name: 'קפה פילטר', description: 'קפה מסונן בשיטת קולד-ברו', price: 14, emoji: '🧊', category: 'משקאות קרים', sortOrder: 5, ingredients: ['קפה', 'מים קרים', 'קרח'], milkOptions: MILK_OPTIONS },
+  { name: 'לימונדה', description: 'לימונדה ביתית קרה', price: 14, emoji: '🍋', category: 'משקאות קרים', sortOrder: 6, ingredients: ['לימון', 'מים', 'סוכר', 'קרח'], milkOptions: [] },
+  { name: 'מיץ תפוזים', description: 'מיץ תפוזים סחוט טרי', price: 16, emoji: '🍊', category: 'משקאות קרים', sortOrder: 7, ingredients: ['תפוזים טריים'], milkOptions: [] },
+  { name: 'עוגת גזר', description: 'עוגת גזר ביתית עם ציפוי', price: 18, emoji: '🥕', category: 'מאפים וממתקים', sortOrder: 8, ingredients: ['גזר', 'קמח', 'סוכר', 'ביצים', 'שמן', 'ציפוי גבינה'], milkOptions: [] },
+  { name: 'מאפה גבינה', description: 'מאפה גבינה חם מהתנור', price: 16, emoji: '🧀', category: 'מאפים וממתקים', sortOrder: 9, ingredients: ['גבינה', 'בצק', 'ביצים', 'מלח'], milkOptions: [] },
+  { name: 'קרואסון חמאה', description: 'קרואסון פריך וטרי', price: 14, emoji: '🥐', category: 'מאפים וממתקים', sortOrder: 10, ingredients: ['קמח', 'חמאה', 'שמרים', 'מלח', 'סוכר'], milkOptions: [] },
 ];
 
 export async function ensureFarmTablesExist() {
@@ -30,6 +32,7 @@ export async function ensureFarmTablesExist() {
         available BOOLEAN NOT NULL DEFAULT true,
         "sortOrder" INTEGER NOT NULL DEFAULT 0,
         ingredients JSONB DEFAULT '[]',
+        "milkOptions" JSONB DEFAULT '[]',
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
       )
@@ -37,6 +40,10 @@ export async function ensureFarmTablesExist() {
 
     await prisma.$executeRawUnsafe(`
       ALTER TABLE coffee_menu_items ADD COLUMN IF NOT EXISTS ingredients JSONB DEFAULT '[]'
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE coffee_menu_items ADD COLUMN IF NOT EXISTS "milkOptions" JSONB DEFAULT '[]'
     `);
 
     await prisma.$executeRawUnsafe(`
@@ -57,11 +64,15 @@ export async function ensureFarmTablesExist() {
     if (count === 0) {
       await prisma.coffeeMenuItem.createMany({ data: DEFAULT_MENU });
     } else {
-      // Update existing items that have no ingredients
       for (const item of DEFAULT_MENU) {
         await prisma.$executeRawUnsafe(
           `UPDATE coffee_menu_items SET ingredients = $1::jsonb WHERE name = $2 AND (ingredients IS NULL OR ingredients = '[]'::jsonb)`,
           JSON.stringify(item.ingredients),
+          item.name,
+        );
+        await prisma.$executeRawUnsafe(
+          `UPDATE coffee_menu_items SET "milkOptions" = $1::jsonb WHERE name = $2 AND ("milkOptions" IS NULL OR "milkOptions" = '[]'::jsonb)`,
+          JSON.stringify(item.milkOptions),
           item.name,
         );
       }

@@ -119,6 +119,7 @@ model CoffeeMenuItem {
   available   Boolean  @default(true)
   sortOrder   Int      @default(0)
   ingredients Json?
+  milkOptions Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
