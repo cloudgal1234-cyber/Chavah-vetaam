@@ -189,7 +189,7 @@ function MenuManager({ pin }: { pin: string }) {
     setSaving(false);
   }
 
-  const categories = ['משקאות חמים', 'משקאות קרים', 'מאפים וממתקים', 'אחר'];
+  const categories = ['משקאות חמים', 'משקאות קרים', 'מאפים וממתקים', 'חלבים', 'אחר'];
 
   if (loading) return <div className="text-stone-400 text-center py-8">טוען תפריט...</div>;
 
