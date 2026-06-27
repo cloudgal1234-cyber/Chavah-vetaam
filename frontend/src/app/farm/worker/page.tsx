@@ -209,7 +209,7 @@ function ItemForm({
           <label className="block text-xs text-stone-400 mb-1">{f.label}</label>
           <input
             type={f.type}
-            value={form[f.key as keyof Pick<EditForm, 'name'|'description'|'price'|'emoji'|'ingredients'>]}
+            value={form[f.key]}
             onChange={e => setForm({ ...form, [f.key]: e.target.value })}
             placeholder={f.placeholder}
             className="w-full bg-stone-700 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-right"
