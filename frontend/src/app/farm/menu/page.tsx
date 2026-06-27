@@ -10,9 +10,11 @@ type MenuItem = {
   price: number;
   emoji: string;
   category: string;
+  ingredients: string[] | null;
+  milkOptions: string[] | null;
 };
 
-type CartItem = MenuItem & { quantity: number };
+type CartItem = MenuItem & { quantity: number; milkChoice?: string };
 
 const CART_KEY = 'farmCart';
 
@@ -22,6 +24,7 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState('הכל');
   const [loading, setLoading] = useState(true);
   const [cartAnimating, setCartAnimating] = useState(false);
+  const [milkModal, setMilkModal] = useState<MenuItem | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -45,17 +48,25 @@ export default function MenuPage() {
     setCart(newCart);
   }, []);
 
-  function addToCart(item: MenuItem) {
+  function addToCart(item: MenuItem, milkChoice?: string) {
     setCartAnimating(true);
     setTimeout(() => setCartAnimating(false), 300);
     setCart(prev => {
       const existing = prev.find(c => c.id === item.id);
       const newCart = existing
-        ? prev.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c)
-        : [...prev, { ...item, quantity: 1 }];
+        ? prev.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1, milkChoice: milkChoice ?? c.milkChoice } : c)
+        : [...prev, { ...item, quantity: 1, milkChoice }];
       localStorage.setItem(CART_KEY, JSON.stringify(newCart));
       return newCart;
     });
+  }
+
+  function handleAddClick(item: MenuItem) {
+    if (item.milkOptions && item.milkOptions.length > 0) {
+      setMilkModal(item);
+    } else {
+      addToCart(item);
+    }
   }
 
   function removeFromCart(itemId: number) {
@@ -76,12 +87,11 @@ export default function MenuPage() {
 
   return (
     <div className="min-h-screen bg-amber-50" dir="rtl">
-      {/* Header */}
       <header className="sticky top-0 z-20 bg-amber-800 text-amber-50 shadow-lg">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold leading-none">עגלת הקפה ☕</h1>
-            <p className="text-xs text-amber-200 mt-0.5">חווה של פעם</p>
+            <p className="text-xs text-amber-200 mt-0.5">חווה וטעם</p>
           </div>
           {totalItems > 0 && (
             <button
@@ -95,14 +105,12 @@ export default function MenuPage() {
         </div>
       </header>
 
-      {/* Hero */}
       <div className="bg-gradient-to-b from-amber-800 to-amber-700 text-amber-50 text-center py-6 px-4">
         <p className="text-2xl font-bold">ברוכים הבאים! 🌾</p>
         <p className="text-sm text-amber-200 mt-1">בחרו מהתפריט – נכין ונביא אליכם</p>
         <p className="text-xs text-amber-300 mt-1">התשלום בעגלת הקפה באיסוף</p>
       </div>
 
-      {/* Category tabs */}
       <div className="bg-white border-b border-amber-200 px-4 py-2.5 flex gap-2 overflow-x-auto no-scrollbar sticky top-[60px] z-10">
         {categories.map(cat => (
           <button
@@ -119,7 +127,6 @@ export default function MenuPage() {
         ))}
       </div>
 
-      {/* Menu grid */}
       <div className="max-w-lg mx-auto px-4 py-4 pb-32">
         {loading ? (
           <div className="grid grid-cols-2 gap-3">
@@ -134,40 +141,35 @@ export default function MenuPage() {
             {filtered.map(item => {
               const cartItem = cart.find(c => c.id === item.id);
               return (
-                <div
-                  key={item.id}
-                  className="bg-white rounded-2xl border border-amber-100 shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow"
-                >
+                <div key={item.id} className="bg-white rounded-2xl border border-amber-100 shadow-sm p-4 flex flex-col hover:shadow-md transition-shadow">
                   <div className="text-4xl text-center mb-2">{item.emoji}</div>
                   <h3 className="font-bold text-stone-800 text-center text-sm leading-tight">{item.name}</h3>
                   {item.description && (
-                    <p className="text-xs text-stone-400 text-center mt-1 flex-1 leading-relaxed">{item.description}</p>
+                    <p className="text-xs text-stone-400 text-center mt-1 leading-relaxed">{item.description}</p>
+                  )}
+                  {item.ingredients && item.ingredients.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-1 mt-1.5 flex-1">
+                      {item.ingredients.map((ing, i) => (
+                        <span key={i} className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-1.5 py-0.5 leading-none">{ing}</span>
+                      ))}
+                    </div>
+                  )}
+                  {item.milkOptions && item.milkOptions.length > 0 && (
+                    <p className="text-[10px] text-stone-400 text-center mt-1">🥛 בחירת חלב</p>
+                  )}
+                  {cartItem?.milkChoice && (
+                    <p className="text-[10px] text-amber-600 text-center font-medium mt-0.5">{cartItem.milkChoice}</p>
                   )}
                   <div className="mt-3 flex items-center justify-between">
                     <span className="font-bold text-amber-700 text-base">₪{item.price}</span>
                     {cartItem ? (
                       <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 font-bold text-lg flex items-center justify-center leading-none hover:bg-amber-200 transition-colors"
-                        >
-                          −
-                        </button>
+                        <button onClick={() => removeFromCart(item.id)} className="w-7 h-7 rounded-full bg-amber-100 text-amber-800 font-bold text-lg flex items-center justify-center leading-none hover:bg-amber-200 transition-colors">−</button>
                         <span className="font-bold text-amber-800 w-4 text-center">{cartItem.quantity}</span>
-                        <button
-                          onClick={() => addToCart(item)}
-                          className="w-7 h-7 rounded-full bg-amber-700 text-white font-bold text-lg flex items-center justify-center leading-none hover:bg-amber-800 transition-colors"
-                        >
-                          +
-                        </button>
+                        <button onClick={() => handleAddClick(item)} className="w-7 h-7 rounded-full bg-amber-700 text-white font-bold text-lg flex items-center justify-center leading-none hover:bg-amber-800 transition-colors">+</button>
                       </div>
                     ) : (
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full font-semibold hover:bg-amber-800 transition-colors active:scale-95"
-                      >
-                        הוסף +
-                      </button>
+                      <button onClick={() => handleAddClick(item)} className="bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full font-semibold hover:bg-amber-800 transition-colors active:scale-95">הוסף +</button>
                     )}
                   </div>
                 </div>
@@ -177,19 +179,39 @@ export default function MenuPage() {
         )}
       </div>
 
-      {/* Floating checkout button */}
       {totalItems > 0 && (
         <div className="fixed bottom-5 left-0 right-0 px-4 z-30 flex justify-center">
           <button
             onClick={() => router.push('/farm/checkout')}
             className="w-full max-w-sm bg-amber-700 text-amber-50 font-bold py-4 rounded-2xl shadow-xl flex items-center justify-between px-6 active:scale-95 transition-transform"
           >
-            <span className="bg-amber-50 text-amber-700 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
-              {totalItems}
-            </span>
+            <span className="bg-amber-50 text-amber-700 rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">{totalItems}</span>
             <span className="text-base">לתשלום ←</span>
             <span className="text-base">₪{totalPrice}</span>
           </button>
+        </div>
+      )}
+
+      {/* Milk selection modal */}
+      {milkModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50" onClick={() => setMilkModal(null)}>
+          <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-10" dir="rtl" onClick={e => e.stopPropagation()}>
+            <div className="text-3xl text-center mb-1">{milkModal.emoji}</div>
+            <h3 className="text-lg font-bold text-stone-800 text-center mb-1">{milkModal.name}</h3>
+            <p className="text-sm text-stone-500 text-center mb-5">בחר סוג חלב</p>
+            <div className="space-y-2">
+              {milkModal.milkOptions!.map(option => (
+                <button
+                  key={option}
+                  onClick={() => { addToCart(milkModal, option); setMilkModal(null); }}
+                  className="w-full py-3 rounded-2xl border-2 border-amber-200 text-amber-800 font-semibold text-base hover:bg-amber-50 hover:border-amber-400 active:scale-95 transition-all"
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setMilkModal(null)} className="mt-4 w-full py-2.5 text-stone-400 text-sm font-medium">ביטול</button>
+          </div>
         </div>
       )}
     </div>

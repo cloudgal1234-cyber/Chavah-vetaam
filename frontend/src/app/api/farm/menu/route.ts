@@ -31,18 +31,9 @@ export async function POST(req: NextRequest) {
       emoji: body.emoji ?? '☕',
       category: body.category ?? 'משקאות',
       sortOrder: body.sortOrder ?? 0,
+      ingredients: Array.isArray(body.ingredients) ? body.ingredients : [],
+      milkOptions: Array.isArray(body.milkOptions) ? body.milkOptions : [],
     },
   });
   return NextResponse.json(item, { status: 201 });
-}
-
-export async function GET_ALL(req: NextRequest) {
-  if (!checkWorkerAuth(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  await ensureFarmTablesExist();
-  const items = await prisma.coffeeMenuItem.findMany({
-    orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
-  });
-  return NextResponse.json(items);
 }

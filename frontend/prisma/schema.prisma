@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -24,6 +25,7 @@ enum MediaType {
   IMAGE
   AUDIO
   UGC
+  TEXT
 }
 
 model User {
@@ -36,6 +38,7 @@ model User {
   avatarUrl     String?
   githubId      String?    @unique
   githubLogin   String?
+  googleId      String?    @unique
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -82,6 +85,17 @@ model Generation {
   @@map("generations")
 }
 
+model MagicLinkToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("magic_link_tokens")
+}
+
 model CreditLog {
   id          String   @id @default(uuid())
   userId      String
@@ -104,6 +118,8 @@ model CoffeeMenuItem {
   category    String   @default("משקאות")
   available   Boolean  @default(true)
   sortOrder   Int      @default(0)
+  ingredients Json?
+  milkOptions Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
