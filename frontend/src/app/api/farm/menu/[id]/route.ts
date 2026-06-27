@@ -23,6 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       ...(body.emoji !== undefined && { emoji: body.emoji }),
       ...(body.category !== undefined && { category: body.category }),
       ...(body.available !== undefined && { available: body.available }),
+      ...(body.ingredients !== undefined && { ingredients: body.ingredients }),
     },
   });
   return NextResponse.json(item);
@@ -33,9 +34,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const id = parseInt(params.id);
-  await prisma.coffeeMenuItem.update({
-    where: { id },
-    data: { available: false },
-  });
+  await prisma.coffeeMenuItem.delete({ where: { id } });
   return NextResponse.json({ success: true });
 }
